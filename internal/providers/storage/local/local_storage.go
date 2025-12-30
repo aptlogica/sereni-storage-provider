@@ -44,6 +44,22 @@ func NewLocalStorageProvider(cfg *config.StorageDevConfig) (interfaces.StoragePr
 
 func (l *LocalStorageProvider) Delete(ctx context.Context, objectName string) error {
 	fullPath := filepath.Join(l.path, objectName)
+
+	// Check if the path exists and is a file
+	fileInfo, err := os.Stat(fullPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return app_errors.FileNotFound
+		}
+		return err
+	}
+
+	// Ensure it's a file, not a directory
+	if fileInfo.IsDir() {
+		return fmt.Errorf("cannot delete directory: %s is a directory, not a file", objectName)
+	}
+
+	// Delete the file
 	return os.Remove(fullPath)
 }
 
@@ -72,6 +88,11 @@ func (l *LocalStorageProvider) Exists(ctx context.Context, objectName string) (b
 }
 
 func (l *LocalStorageProvider) Upload(ctx context.Context, objectName string, reader io.Reader, size int64, contentType string) (string, error) {
+	// Prevent paths ending with slash (would create directory instead of file)
+	if strings.HasSuffix(objectName, "/") || strings.HasSuffix(objectName, "\\") {
+		return "", fmt.Errorf("invalid object name: cannot end with path separator")
+	}
+
 	fullPath := filepath.Join(l.path, objectName)
 
 	// Ensure subdirectory exists if objectName contains path separators
@@ -96,7 +117,7 @@ func (l *LocalStorageProvider) Upload(ctx context.Context, objectName string, re
 		return "", err
 	}
 
-	return l.GetURL(ctx, fullPath)
+	return l.GetURL(ctx, objectName)
 }
 
 func (l *LocalStorageProvider) GetURL(ctx context.Context, objectName string) (string, error) {

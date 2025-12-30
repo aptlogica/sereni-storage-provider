@@ -40,10 +40,17 @@ func (h *StorageHandler) Upload(c *gin.Context) {
 
 	// Optional: Allow user to specify path/folder
 	path := c.DefaultPostForm("path", "uploads")
-	objectName := filepath.Join(path, file.Filename)
-	// Sanitize path if needed to prevent directory traversal outside allowed areas?
-	// Providers usually handle buckets, but local storage needs watching.
-	// For now simple join.
+
+	// Check if path already ends with the filename
+	// This handles cases where the client sends the full path including filename
+	var objectName string
+	if filepath.Base(path) == file.Filename {
+		// Path already includes the filename, use as-is
+		objectName = path
+	} else {
+		// Path is just a directory, append filename
+		objectName = filepath.Join(path, file.Filename)
+	}
 
 	uploadResponse, err := h.service.UploadFile(c.Request.Context(), file, objectName)
 	if err != nil {
