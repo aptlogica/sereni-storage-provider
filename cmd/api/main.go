@@ -51,7 +51,7 @@ func main() {
 	// Optional: Add CORS, Middleware here
 	router.MaxMultipartMemory = 8 << 20 // 8 MiB
 
-	routes.SetupRoutes(router, storageHandler, healthHandler)
+	routes.SetupRoutes(router, storageHandler, healthHandler, config.AppConfig.Storage.Dev.Path)
 
 	// 6. Start Server
 	serverAddr := fmt.Sprintf("%s:%s", config.AppConfig.Server.Host, config.AppConfig.Server.Port)

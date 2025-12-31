@@ -122,9 +122,10 @@ func (l *LocalStorageProvider) Upload(ctx context.Context, objectName string, re
 
 func (l *LocalStorageProvider) GetURL(ctx context.Context, objectName string) (string, error) {
 	// Simple static file serving URL construction
-	// In production this might be different (CDN etc)
+	// The static route is configured to serve /uploads from the storage path
+	// So we need to prepend /uploads to the object name
 	cleanPath := strings.ReplaceAll(objectName, "\\", "/")
-	return l.baseURL + cleanPath, nil
+	return l.baseURL + "uploads/" + cleanPath, nil
 }
 
 func (l *LocalStorageProvider) HealthCheck(ctx context.Context) error {
