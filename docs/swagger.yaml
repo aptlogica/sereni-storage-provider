@@ -1,5 +1,5 @@
 basePath: /api/v1
-host: localhost:8083
+host: localhost:5050
 info:
   contact:
     email: support@swagger.io
