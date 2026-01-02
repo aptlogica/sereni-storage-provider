@@ -1,0 +1,153 @@
+basePath: /api/v1
+host: localhost:8083
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: A robust storage provider service supporting Local, S3, and MinIO backends.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-0.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Sereni Storage Provider API
+  version: "1.0"
+paths:
+  /health:
+    get:
+      description: Checks the health of the storage provider
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "503":
+          description: Service Unavailable
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Health check
+      tags:
+      - health
+  /ping:
+    get:
+      description: Checks if the API is reachable
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: pong
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Ping check
+      tags:
+      - health
+  /storage/delete:
+    delete:
+      description: Deletes a file from the configured storage provider
+      parameters:
+      - description: Path to the file
+        in: query
+        name: path
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: File deleted successfully
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a file
+      tags:
+      - storage
+  /storage/download:
+    get:
+      description: Downloads a file from the configured storage provider
+      parameters:
+      - description: Path to the file
+        in: query
+        name: path
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: File content
+          schema:
+            type: file
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: File Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Download a file
+      tags:
+      - storage
+  /storage/upload:
+    post:
+      description: Uploads a file to the configured storage provider
+      parameters:
+      - description: File to upload
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: Path to store the file
+        in: formData
+        name: path
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: File uploaded successfully
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Upload a file
+      tags:
+      - storage
+swagger: "2.0"
