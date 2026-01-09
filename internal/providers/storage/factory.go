@@ -11,18 +11,18 @@ import (
 	"sereni-storage-provider/internal/providers/storage/s3"
 )
 
-func NewStorage(cfg *config.StorageConfig) (interfaces.StorageProvider, error) {
-	switch strings.ToLower(cfg.Driver) {
+func NewStorage(storageCfg *config.StorageConfig, serverCfg *config.ServerConfig) (interfaces.StorageProvider, error) {
+	switch strings.ToLower(storageCfg.Driver) {
 	case "local", "dev":
-		return local.NewLocalStorageProvider(&cfg.Dev)
+		return local.NewLocalStorageProvider(&storageCfg.Dev, serverCfg)
 
 	case "minio":
-		return minio.NewMinioStorageProvider(&cfg.Minio)
+		return minio.NewMinioStorageProvider(&storageCfg.Minio)
 
 	case "aws", "s3":
-		return s3.NewS3StorageProvider(&cfg.AWS)
+		return s3.NewS3StorageProvider(&storageCfg.AWS)
 
 	default:
-		return nil, fmt.Errorf("unsupported storage driver: %s", cfg.Driver)
+		return nil, fmt.Errorf("unsupported storage driver: %s", storageCfg.Driver)
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"mime/multipart"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -20,14 +21,27 @@ func NewStorageService(provider interfaces.StorageProvider) *StorageService {
 	}
 }
 
+var reCollapse = regexp.MustCompile(`/+`)
+
 func normalizePath(path string) string {
 	// Convert all backslashes to slashes
 	p := strings.ReplaceAll(path, "\\", "/")
 
 	// Collapse multiple slashes into one
-	re := regexp.MustCompile(`/+`)
-	p = re.ReplaceAllString(p, "/")
+	p = reCollapse.ReplaceAllString(p, "/")
 
+	// Clean the path (removes ., .. elements). We intentionally do not
+	// allow leading ../ sequences; Clean will reduce them but we also
+	// ensure path does not start with '..'
+	p = filepath.Clean(p)
+	if p == "." {
+		return ""
+	}
+	if strings.HasPrefix(p, "..") {
+		return ""
+	}
+	// Trim any leading / to keep object keys relative
+	p = strings.TrimLeft(p, "/")
 	return p
 }
 
@@ -44,18 +58,24 @@ func (s *StorageService) UploadFile(ctx context.Context, file *multipart.FileHea
 	defer src.Close()
 
 	contentType := file.Header.Get("Content-Type")
-	// If path is not provided, use filename? Or caller provides full path?
-	// Let's assume path includes filename or we append it.
-	// For now, assuming 'path' is the full object key.
+	cleanPath := normalizePath(path)
+	if cleanPath == "" {
+		// Use filename only
+		cleanPath = file.Filename
+	}
+	// If cleanPath looks like a directory (ends with slash), append filename
+	if strings.HasSuffix(cleanPath, "/") {
+		cleanPath = filepath.Join(cleanPath, file.Filename)
+	}
 
-	url, err := s.provider.Upload(ctx, normalizePath(path), src, file.Size, contentType)
+	url, err := s.provider.Upload(ctx, normalizePath(cleanPath), src, file.Size, contentType)
 	if err != nil {
 		return UploadResponse{}, err
 	}
 
 	return UploadResponse{
 		URL:        url,
-		ObjectName: path,
+		ObjectName: cleanPath,
 	}, nil
 }
 

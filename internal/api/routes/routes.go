@@ -19,7 +19,6 @@ func SetupRoutes(router *gin.Engine, storageHandler *handlers.StorageHandler, he
 
 	api := router.Group("/api/v1")
 	{
-		api.GET("/ping", healthHandler.Ping)
 		api.GET("/health", healthHandler.Health)
 
 		storage := api.Group("/storage")

@@ -34,21 +34,6 @@ paths:
       summary: Health check
       tags:
       - health
-  /ping:
-    get:
-      description: Checks if the API is reachable
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: pong
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Ping check
-      tags:
-      - health
   /storage/delete:
     delete:
       description: Deletes a file from the configured storage provider
