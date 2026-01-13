@@ -14,7 +14,7 @@ import (
 )
 
 type MinioStorageProvider struct {
-	client *minio.Client
+	client interfaces.MinioClient
 	bucket string
 }
 

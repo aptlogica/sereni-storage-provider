@@ -2,8 +2,13 @@
 /bin/
 *.exe
 *.test
-*.out
 main
+
+# Test Coverage and Report Files (generated)
+/*.out
+coverage.html
+coverage.txt
+report.md
 
 # Environment Variables
 .env

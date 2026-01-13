@@ -17,7 +17,7 @@ import (
 )
 
 type S3StorageProvider struct {
-	client   *s3.Client
+	client   interfaces.S3Client
 	bucket   string
 	region   string
 	uploader *manager.Uploader
@@ -97,7 +97,7 @@ func (s *S3StorageProvider) Upload(ctx context.Context, objectName string, reade
 		ContentType: aws.String(contentType),
 	}
 
-	_, err := s.uploader.Upload(ctx, upParams)
+	_, err := s.client.PutObject(ctx, upParams)
 	if err != nil {
 		return "", err
 	}
@@ -106,16 +106,20 @@ func (s *S3StorageProvider) Upload(ctx context.Context, objectName string, reade
 }
 
 func (s *S3StorageProvider) GetURL(ctx context.Context, objectName string) (string, error) {
-	presigner := s3.NewPresignClient(s.client)
-	out, err := presigner.PresignGetObject(ctx, &s3.GetObjectInput{
-		Bucket: aws.String(s.bucket),
-		Key:    aws.String(objectName),
-	}, s3.WithPresignExpires(15*time.Minute))
-	if err != nil {
-		// fallback to public URL
-		return fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", s.bucket, s.region, objectName), nil
+	if client, ok := s.client.(*s3.Client); ok {
+		presigner := s3.NewPresignClient(client)
+		out, err := presigner.PresignGetObject(ctx, &s3.GetObjectInput{
+			Bucket: aws.String(s.bucket),
+			Key:    aws.String(objectName),
+		}, s3.WithPresignExpires(15*time.Minute))
+		if err != nil {
+			// fallback to public URL
+			return fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", s.bucket, s.region, objectName), nil
+		}
+		return out.URL, nil
 	}
-	return out.URL, nil
+	// fallback to public URL for mocks
+	return fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", s.bucket, s.region, objectName), nil
 }
 
 func (s *S3StorageProvider) HealthCheck(ctx context.Context) error {

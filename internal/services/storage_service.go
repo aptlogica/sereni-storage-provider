@@ -63,8 +63,8 @@ func (s *StorageService) UploadFile(ctx context.Context, file *multipart.FileHea
 		// Use filename only
 		cleanPath = file.Filename
 	}
-	// If cleanPath looks like a directory (ends with slash), append filename
-	if strings.HasSuffix(cleanPath, "/") {
+	// If original path looks like a directory (ends with slash), append filename
+	if strings.HasSuffix(path, "/") {
 		cleanPath = filepath.Join(cleanPath, file.Filename)
 	}
 

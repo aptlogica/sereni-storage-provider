@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"net/http"
 	"sync"
 	"time"
@@ -34,19 +35,29 @@ func init() {
 
 // janitor periodically removes stale client entries to avoid unbounded memory growth.
 func janitor() {
-	ticker := time.NewTicker(5 * time.Minute)
+	janitorWithInterval(context.Background(), 5*time.Minute)
+}
+
+// janitorWithInterval allows testing with custom interval and context
+func janitorWithInterval(ctx context.Context, interval time.Duration) {
+	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
-	for range ticker.C {
-		cutoff := time.Now().Add(-10 * time.Minute)
-		clientsMu.Lock()
-		for k, v := range clients {
-			v.mu.Lock()
-			if v.last.Before(cutoff) {
-				delete(clients, k)
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			cutoff := time.Now().Add(-10 * time.Minute)
+			clientsMu.Lock()
+			for k, v := range clients {
+				v.mu.Lock()
+				if v.last.Before(cutoff) {
+					delete(clients, k)
+				}
+				v.mu.Unlock()
 			}
-			v.mu.Unlock()
+			clientsMu.Unlock()
 		}
-		clientsMu.Unlock()
 	}
 }
 
