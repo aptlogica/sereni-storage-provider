@@ -4,6 +4,9 @@
 *.test
 main
 
+# Test Files
+**/*_test.go
+
 # Test Coverage and Report Files (generated)
 /*.out
 coverage.html
