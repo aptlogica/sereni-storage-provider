@@ -91,15 +91,9 @@ func (m *MinioStorageProvider) Upload(ctx context.Context, objectName string, re
 }
 
 func (m *MinioStorageProvider) GetURL(ctx context.Context, objectName string) (string, error) {
-	// Always return a presigned URL valid for 15 minutes to support private buckets
-	// MinIO provides PresignedGetObject API
-	presignedURL, err := m.client.PresignedGetObject(ctx, m.bucket, objectName, 15*time.Minute, nil)
-	if err != nil {
-		// Fallback to public URL construction
-		endpoint := m.client.EndpointURL()
-		return fmt.Sprintf("%s/%s/%s", endpoint.String(), m.bucket, objectName), nil
-	}
-	return presignedURL.String(), nil
+	// Return the public URL for the object
+	endpoint := m.client.EndpointURL()
+	return fmt.Sprintf("%s/%s/%s", endpoint.String(), m.bucket, objectName), nil
 }
 
 func (m *MinioStorageProvider) HealthCheck(ctx context.Context) error {
