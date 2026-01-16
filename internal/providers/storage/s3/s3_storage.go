@@ -17,10 +17,10 @@ import (
 )
 
 type S3StorageProvider struct {
-	client   interfaces.S3Client
-	bucket   string
-	region   string
-	uploader *manager.Uploader
+	Client   interfaces.S3Client
+	Bucket   string
+	Region   string
+	Uploader *manager.Uploader
 }
 
 func NewS3StorageProvider(cfg *app_config.StorageAWSConfig) (interfaces.StorageProvider, error) {
@@ -52,24 +52,24 @@ func NewS3StorageProvider(cfg *app_config.StorageAWSConfig) (interfaces.StorageP
 	uploader := manager.NewUploader(client)
 
 	return &S3StorageProvider{
-		client:   client,
-		bucket:   cfg.Bucket,
-		region:   cfg.Region,
-		uploader: uploader,
+		Client:   client,
+		Bucket:   cfg.Bucket,
+		Region:   cfg.Region,
+		Uploader: uploader,
 	}, nil
 }
 
 func (s *S3StorageProvider) Delete(ctx context.Context, objectName string) error {
-	_, err := s.client.DeleteObject(ctx, &s3.DeleteObjectInput{
-		Bucket: aws.String(s.bucket),
+	_, err := s.Client.DeleteObject(ctx, &s3.DeleteObjectInput{
+		Bucket: aws.String(s.Bucket),
 		Key:    aws.String(objectName),
 	})
 	return err
 }
 
 func (s *S3StorageProvider) Download(ctx context.Context, objectName string) (io.ReadCloser, error) {
-	out, err := s.client.GetObject(ctx, &s3.GetObjectInput{
-		Bucket: aws.String(s.bucket),
+	out, err := s.Client.GetObject(ctx, &s3.GetObjectInput{
+		Bucket: aws.String(s.Bucket),
 		Key:    aws.String(objectName),
 	})
 	if err != nil {
@@ -79,8 +79,8 @@ func (s *S3StorageProvider) Download(ctx context.Context, objectName string) (io
 }
 
 func (s *S3StorageProvider) Exists(ctx context.Context, objectName string) (bool, error) {
-	_, err := s.client.HeadObject(ctx, &s3.HeadObjectInput{
-		Bucket: aws.String(s.bucket),
+	_, err := s.Client.HeadObject(ctx, &s3.HeadObjectInput{
+		Bucket: aws.String(s.Bucket),
 		Key:    aws.String(objectName),
 	})
 	if err != nil {
@@ -91,13 +91,13 @@ func (s *S3StorageProvider) Exists(ctx context.Context, objectName string) (bool
 
 func (s *S3StorageProvider) Upload(ctx context.Context, objectName string, reader io.Reader, size int64, contentType string) (string, error) {
 	upParams := &s3.PutObjectInput{
-		Bucket:      aws.String(s.bucket),
+		Bucket:      aws.String(s.Bucket),
 		Key:         aws.String(objectName),
 		Body:        reader,
 		ContentType: aws.String(contentType),
 	}
 
-	_, err := s.client.PutObject(ctx, upParams)
+	_, err := s.Client.PutObject(ctx, upParams)
 	if err != nil {
 		return "", err
 	}
@@ -106,26 +106,26 @@ func (s *S3StorageProvider) Upload(ctx context.Context, objectName string, reade
 }
 
 func (s *S3StorageProvider) GetURL(ctx context.Context, objectName string) (string, error) {
-	if client, ok := s.client.(*s3.Client); ok {
+	if client, ok := s.Client.(*s3.Client); ok {
 		presigner := s3.NewPresignClient(client)
 		out, err := presigner.PresignGetObject(ctx, &s3.GetObjectInput{
-			Bucket: aws.String(s.bucket),
+			Bucket: aws.String(s.Bucket),
 			Key:    aws.String(objectName),
 		}, s3.WithPresignExpires(15*time.Minute))
 		if err != nil {
 			// fallback to public URL
-			return fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", s.bucket, s.region, objectName), nil
+			return fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", s.Bucket, s.Region, objectName), nil
 		}
 		return out.URL, nil
 	}
 	// fallback to public URL for mocks
-	return fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", s.bucket, s.region, objectName), nil
+	return fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", s.Bucket, s.Region, objectName), nil
 }
 
 func (s *S3StorageProvider) HealthCheck(ctx context.Context) error {
 	// Check bucket accessibility
-	_, err := s.client.HeadBucket(ctx, &s3.HeadBucketInput{
-		Bucket: aws.String(s.bucket),
+	_, err := s.Client.HeadBucket(ctx, &s3.HeadBucketInput{
+		Bucket: aws.String(s.Bucket),
 	})
 	if err != nil {
 		return fmt.Errorf("s3 health check failed: %w", err)

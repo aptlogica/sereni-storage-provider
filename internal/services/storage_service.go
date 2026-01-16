@@ -23,7 +23,7 @@ func NewStorageService(provider interfaces.StorageProvider) *StorageService {
 
 var reCollapse = regexp.MustCompile(`/+`)
 
-func normalizePath(path string) string {
+func NormalizePath(path string) string {
 	// Convert all backslashes to slashes
 	p := strings.ReplaceAll(path, "\\", "/")
 
@@ -58,7 +58,7 @@ func (s *StorageService) UploadFile(ctx context.Context, file *multipart.FileHea
 	defer src.Close()
 
 	contentType := file.Header.Get("Content-Type")
-	cleanPath := normalizePath(path)
+	cleanPath := NormalizePath(path)
 	if cleanPath == "" {
 		// Use filename only
 		cleanPath = file.Filename
@@ -68,7 +68,7 @@ func (s *StorageService) UploadFile(ctx context.Context, file *multipart.FileHea
 		cleanPath = filepath.Join(cleanPath, file.Filename)
 	}
 
-	url, err := s.provider.Upload(ctx, normalizePath(cleanPath), src, file.Size, contentType)
+	url, err := s.provider.Upload(ctx, NormalizePath(cleanPath), src, file.Size, contentType)
 	if err != nil {
 		return UploadResponse{}, err
 	}
@@ -80,19 +80,19 @@ func (s *StorageService) UploadFile(ctx context.Context, file *multipart.FileHea
 }
 
 func (s *StorageService) GetFile(ctx context.Context, path string) (io.ReadCloser, error) {
-	return s.provider.Download(ctx, normalizePath(path))
+	return s.provider.Download(ctx, NormalizePath(path))
 }
 
 func (s *StorageService) DeleteFile(ctx context.Context, path string) error {
-	return s.provider.Delete(ctx, normalizePath(path))
+	return s.provider.Delete(ctx, NormalizePath(path))
 }
 
 func (s *StorageService) FileExists(ctx context.Context, path string) (bool, error) {
-	return s.provider.Exists(ctx, normalizePath(path))
+	return s.provider.Exists(ctx, NormalizePath(path))
 }
 
 func (s *StorageService) GetFileURL(ctx context.Context, path string) (string, error) {
-	return s.provider.GetURL(ctx, normalizePath(path))
+	return s.provider.GetURL(ctx, NormalizePath(path))
 }
 
 func (s *StorageService) HealthCheck(ctx context.Context) error {
