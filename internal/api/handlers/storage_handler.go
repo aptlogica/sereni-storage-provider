@@ -4,19 +4,29 @@ import (
 	"io"
 	"net/http"
 	"path/filepath"
+	"strings"
 
+	app_errors "sereni-storage-provider/internal/app-errors"
 	"sereni-storage-provider/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
 
 type StorageHandler struct {
-	service *services.StorageService
+	service       *services.StorageService
+	maxUploadSize int64
+	allowedTypes  map[string]struct{}
 }
 
-func NewStorageHandler(service *services.StorageService) *StorageHandler {
+func NewStorageHandler(service *services.StorageService, maxUploadSize int64, allowed []string) *StorageHandler {
+	a := make(map[string]struct{}, len(allowed))
+	for _, t := range allowed {
+		a[t] = struct{}{}
+	}
 	return &StorageHandler{
-		service: service,
+		service:       service,
+		maxUploadSize: maxUploadSize,
+		allowedTypes:  a,
 	}
 }
 
@@ -38,6 +48,12 @@ func (h *StorageHandler) Upload(c *gin.Context) {
 		return
 	}
 
+	// Enforce server-side size limit
+	if h.maxUploadSize > 0 && file.Size > h.maxUploadSize {
+		c.JSON(http.StatusRequestEntityTooLarge, gin.H{"error": "file too large"})
+		return
+	}
+
 	// Optional: Allow user to specify path/folder
 	path := c.DefaultPostForm("path", "uploads")
 
@@ -52,9 +68,57 @@ func (h *StorageHandler) Upload(c *gin.Context) {
 		objectName = filepath.Join(path, file.Filename)
 	}
 
+	// Validate content-type by reading header bytes from the uploaded file
+	fr, err := file.Open()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to read uploaded file"})
+		return
+	}
+	defer fr.Close()
+
+	// Read first 512 bytes to detect content type
+	buf := make([]byte, 512)
+	n, _ := fr.Read(buf)
+	detected := http.DetectContentType(buf[:n])
+	// strip parameters (e.g., ; charset=utf-8)
+	if idx := strings.IndexByte(detected, ';'); idx != -1 {
+		detected = strings.TrimSpace(detected[:idx])
+	}
+	if len(h.allowedTypes) > 0 {
+		ok := false
+		// flexible matching: exact or major-type match (wildcard-like)
+		for allowed := range h.allowedTypes {
+			if allowed == detected {
+				ok = true
+				break
+			}
+			// match major type, e.g., allowed "text/*" or "text/plain" should accept "text/csv"
+			if len(allowed) > 0 {
+				// split on '/'
+				aParts := strings.SplitN(allowed, "/", 2)
+				dParts := strings.SplitN(detected, "/", 2)
+				if len(aParts) == 2 && len(dParts) == 2 {
+					if aParts[1] == "*" && aParts[0] == dParts[0] {
+						ok = true
+						break
+					}
+					if aParts[0] == dParts[0] && aParts[1] == dParts[1] {
+						ok = true
+						break
+					}
+				}
+			}
+		}
+		if !ok {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid content type", "detected": detected})
+			return
+		}
+	}
+
 	uploadResponse, err := h.service.UploadFile(c.Request.Context(), file, objectName)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		// Avoid leaking internal errors; return generic message
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to upload file"})
 		return
 	}
 
@@ -86,8 +150,17 @@ func (h *StorageHandler) Download(c *gin.Context) {
 
 	reader, err := h.service.GetFile(c.Request.Context(), objectPath)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "File not found or error accessing"})
-		return
+		switch err {
+		case app_errors.FileNotFound:
+			c.JSON(http.StatusNotFound, gin.H{"error": "file not found"})
+			return
+		case app_errors.ErrInvalidPath:
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid path"})
+			return
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to access file"})
+			return
+		}
 	}
 	defer reader.Close()
 
@@ -127,8 +200,17 @@ func (h *StorageHandler) Delete(c *gin.Context) {
 
 	err := h.service.DeleteFile(c.Request.Context(), objectPath)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+		switch err {
+		case app_errors.FileNotFound:
+			c.JSON(http.StatusNotFound, gin.H{"error": "file not found"})
+			return
+		case app_errors.ErrInvalidPath:
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid path"})
+			return
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete file"})
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "File deleted successfully"})

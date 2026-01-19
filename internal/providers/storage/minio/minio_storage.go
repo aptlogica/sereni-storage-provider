@@ -14,8 +14,8 @@ import (
 )
 
 type MinioStorageProvider struct {
-	client *minio.Client
-	bucket string
+	Client interfaces.MinioClient
+	Bucket string
 }
 
 func NewMinioStorageProvider(cfg *config.StorageMinioConfig) (interfaces.StorageProvider, error) {
@@ -43,17 +43,17 @@ func NewMinioStorageProvider(cfg *config.StorageMinioConfig) (interfaces.Storage
 	}
 
 	return &MinioStorageProvider{
-		client: client,
-		bucket: cfg.Bucket,
+		Client: client,
+		Bucket: cfg.Bucket,
 	}, nil
 }
 
 func (m *MinioStorageProvider) Delete(ctx context.Context, objectName string) error {
-	return m.client.RemoveObject(ctx, m.bucket, objectName, minio.RemoveObjectOptions{})
+	return m.Client.RemoveObject(ctx, m.Bucket, objectName, minio.RemoveObjectOptions{})
 }
 
 func (m *MinioStorageProvider) Download(ctx context.Context, objectName string) (io.ReadCloser, error) {
-	obj, err := m.client.GetObject(ctx, m.bucket, objectName, minio.GetObjectOptions{})
+	obj, err := m.Client.GetObject(ctx, m.Bucket, objectName, minio.GetObjectOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (m *MinioStorageProvider) Download(ctx context.Context, objectName string) 
 }
 
 func (m *MinioStorageProvider) Exists(ctx context.Context, objectName string) (bool, error) {
-	_, err := m.client.StatObject(ctx, m.bucket, objectName, minio.StatObjectOptions{})
+	_, err := m.Client.StatObject(ctx, m.Bucket, objectName, minio.StatObjectOptions{})
 	if err != nil {
 		if minio.ToErrorResponse(err).Code == "NoSuchKey" {
 			return false, nil
@@ -80,7 +80,7 @@ func (m *MinioStorageProvider) Upload(ctx context.Context, objectName string, re
 	// If size is unknown (-1), PutObject might handle it if reader provides Seeker, or we rely on MinIO client multipart.
 	// MinIO client requires size. If -1, pass -1 but ensure reader is compatible or use simple streaming if allowed.
 
-	_, err := m.client.PutObject(ctx, m.bucket, objectName, reader, size, minio.PutObjectOptions{
+	_, err := m.Client.PutObject(ctx, m.Bucket, objectName, reader, size, minio.PutObjectOptions{
 		ContentType: contentType,
 	})
 	if err != nil {
@@ -91,27 +91,19 @@ func (m *MinioStorageProvider) Upload(ctx context.Context, objectName string, re
 }
 
 func (m *MinioStorageProvider) GetURL(ctx context.Context, objectName string) (string, error) {
-	// Return a presigned URL or public URL depending on requirement.
-	// For "provider" usually public URL if public bucket, or presigned.
-	// Let's implement public URL construction for cleanliness as requested "GetURL".
-
-	// If using standard MinIO usually: http(s)://endpoint/bucket/object
-
-	endpoint := m.client.EndpointURL()
-	// endpointURL returns the API endpoint.
-
-	url := fmt.Sprintf("%s/%s/%s", endpoint.String(), m.bucket, objectName)
-	return url, nil
+	// Return the public URL for the object
+	endpoint := m.Client.EndpointURL()
+	return fmt.Sprintf("%s/%s/%s", endpoint.String(), m.Bucket, objectName), nil
 }
 
 func (m *MinioStorageProvider) HealthCheck(ctx context.Context) error {
 	// Simple connectivity check (bucket exists)
-	exists, err := m.client.BucketExists(ctx, m.bucket)
+	exists, err := m.Client.BucketExists(ctx, m.Bucket)
 	if err != nil {
 		return fmt.Errorf("minio health check failed: %w", err)
 	}
 	if !exists {
-		return fmt.Errorf("minio bucket %s does not exist", m.bucket)
+		return fmt.Errorf("minio bucket %s does not exist", m.Bucket)
 	}
 	return nil
 }

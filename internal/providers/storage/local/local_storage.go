@@ -20,30 +20,38 @@ type LocalStorageProvider struct {
 	baseURL string
 }
 
-func NewLocalStorageProvider(cfg *config.StorageDevConfig) (interfaces.StorageProvider, error) {
+func NewLocalStorageProvider(cfg *config.StorageDevConfig, serverCfg *config.ServerConfig) (interfaces.StorageProvider, error) {
 	if cfg.Path == "" {
 		return nil, errors.New("local storage path is required")
 	}
 
-	err := file.CreateDirIfNotExists(cfg.Path, 0755)
-	if err != nil {
+	// Ensure base storage path exists and is absolute
+	if err := file.CreateDirIfNotExists(cfg.Path, 0755); err != nil {
 		return nil, app_errors.FolderCreateFailed
+	}
+	absPath, err := filepath.Abs(cfg.Path)
+	if err != nil {
+		return nil, err
 	}
 
 	// Construct base URL for serving files
 	baseURL := fmt.Sprintf("%s://%s:%s/",
-		config.AppConfig.Server.Scheme,
-		config.AppConfig.Server.Host,
-		config.AppConfig.Server.Port)
+		serverCfg.Scheme,
+		serverCfg.Host,
+		serverCfg.Port)
 
 	return &LocalStorageProvider{
-		path:    cfg.Path,
+		path:    absPath,
 		baseURL: baseURL,
 	}, nil
 }
 
 func (l *LocalStorageProvider) Delete(ctx context.Context, objectName string) error {
-	fullPath := filepath.Join(l.path, objectName)
+	// Prevent path traversal and ensure file is within base path
+	fullPath, err := file.SafeJoin(l.path, objectName)
+	if err != nil {
+		return app_errors.ErrInvalidPath
+	}
 
 	// Check if the path exists and is a file
 	fileInfo, err := os.Stat(fullPath)
@@ -54,17 +62,21 @@ func (l *LocalStorageProvider) Delete(ctx context.Context, objectName string) er
 		return err
 	}
 
-	// Ensure it's a file, not a directory
 	if fileInfo.IsDir() {
 		return fmt.Errorf("cannot delete directory: %s is a directory, not a file", objectName)
 	}
 
-	// Delete the file
-	return os.Remove(fullPath)
+	if err := os.Remove(fullPath); err != nil {
+		return app_errors.ErrDeleteFailed
+	}
+	return nil
 }
 
 func (l *LocalStorageProvider) Download(ctx context.Context, objectName string) (io.ReadCloser, error) {
-	fullPath := filepath.Join(l.path, objectName)
+	fullPath, err := file.SafeJoin(l.path, objectName)
+	if err != nil {
+		return nil, app_errors.ErrInvalidPath
+	}
 	f, err := os.Open(fullPath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -76,8 +88,11 @@ func (l *LocalStorageProvider) Download(ctx context.Context, objectName string) 
 }
 
 func (l *LocalStorageProvider) Exists(ctx context.Context, objectName string) (bool, error) {
-	fullPath := filepath.Join(l.path, objectName)
-	_, err := os.Stat(fullPath)
+	fullPath, err := file.SafeJoin(l.path, objectName)
+	if err != nil {
+		return false, app_errors.ErrInvalidPath
+	}
+	_, err = os.Stat(fullPath)
 	if err == nil {
 		return true, nil
 	}
@@ -93,9 +108,12 @@ func (l *LocalStorageProvider) Upload(ctx context.Context, objectName string, re
 		return "", fmt.Errorf("invalid object name: cannot end with path separator")
 	}
 
-	fullPath := filepath.Join(l.path, objectName)
+	fullPath, err := file.SafeJoin(l.path, objectName)
+	if err != nil {
+		return "", app_errors.ErrInvalidPath
+	}
 
-	// Ensure subdirectory exists if objectName contains path separators
+	// Ensure subdirectory exists
 	if err := os.MkdirAll(filepath.Dir(fullPath), 0755); err != nil {
 		return "", err
 	}

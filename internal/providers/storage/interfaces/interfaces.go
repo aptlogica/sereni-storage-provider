@@ -3,6 +3,11 @@ package interfaces
 import (
 	"context"
 	"io"
+	"net/url"
+	"time"
+
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/minio/minio-go/v7"
 )
 
 // StorageProvider abstracts file storage operations across different backends
@@ -13,4 +18,22 @@ type StorageProvider interface {
 	Exists(ctx context.Context, objectName string) (bool, error)
 	GetURL(ctx context.Context, objectName string) (string, error)
 	HealthCheck(ctx context.Context) error
+}
+
+type MinioClient interface {
+	RemoveObject(ctx context.Context, bucket, object string, opts minio.RemoveObjectOptions) error
+	GetObject(ctx context.Context, bucket, object string, opts minio.GetObjectOptions) (*minio.Object, error)
+	PutObject(ctx context.Context, bucket, object string, reader io.Reader, size int64, opts minio.PutObjectOptions) (minio.UploadInfo, error)
+	StatObject(ctx context.Context, bucket, object string, opts minio.StatObjectOptions) (minio.ObjectInfo, error)
+	BucketExists(ctx context.Context, bucket string) (bool, error)
+	PresignedGetObject(ctx context.Context, bucket, object string, expiry time.Duration, reqParams url.Values) (*url.URL, error)
+	EndpointURL() *url.URL
+}
+
+type S3Client interface {
+	DeleteObject(ctx context.Context, params *s3.DeleteObjectInput, optFns ...func(*s3.Options)) (*s3.DeleteObjectOutput, error)
+	GetObject(ctx context.Context, params *s3.GetObjectInput, optFns ...func(*s3.Options)) (*s3.GetObjectOutput, error)
+	PutObject(ctx context.Context, params *s3.PutObjectInput, optFns ...func(*s3.Options)) (*s3.PutObjectOutput, error)
+	HeadObject(ctx context.Context, params *s3.HeadObjectInput, optFns ...func(*s3.Options)) (*s3.HeadObjectOutput, error)
+	HeadBucket(ctx context.Context, params *s3.HeadBucketInput, optFns ...func(*s3.Options)) (*s3.HeadBucketOutput, error)
 }

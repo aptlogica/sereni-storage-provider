@@ -50,29 +50,6 @@
                 }
             }
         },
-        "/ping": {
-            "get": {
-                "description": "Checks if the API is reachable",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "health"
-                ],
-                "summary": "Ping check",
-                "responses": {
-                    "200": {
-                        "description": "pong",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/storage/delete": {
             "delete": {
                 "description": "Deletes a file from the configured storage provider",

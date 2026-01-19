@@ -2,8 +2,8 @@
 /bin/
 *.exe
 *.test
-*.out
 main
+
 
 # Environment Variables
 .env
