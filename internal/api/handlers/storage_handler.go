@@ -48,27 +48,14 @@ func (h *StorageHandler) Upload(c *gin.Context) {
 		return
 	}
 
-	// Enforce server-side size limit
 	if h.maxUploadSize > 0 && file.Size > h.maxUploadSize {
 		c.JSON(http.StatusRequestEntityTooLarge, gin.H{"error": "file too large"})
 		return
 	}
 
-	// Optional: Allow user to specify path/folder
 	path := c.DefaultPostForm("path", "uploads")
+	objectName := resolveObjectName(path, file.Filename)
 
-	// Check if path already ends with the filename
-	// This handles cases where the client sends the full path including filename
-	var objectName string
-	if filepath.Base(path) == file.Filename {
-		// Path already includes the filename, use as-is
-		objectName = path
-	} else {
-		// Path is just a directory, append filename
-		objectName = filepath.Join(path, file.Filename)
-	}
-
-	// Validate content-type by reading header bytes from the uploaded file
 	fr, err := file.Open()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to read uploaded file"})
@@ -76,48 +63,14 @@ func (h *StorageHandler) Upload(c *gin.Context) {
 	}
 	defer fr.Close()
 
-	// Read first 512 bytes to detect content type
-	buf := make([]byte, 512)
-	n, _ := fr.Read(buf)
-	detected := http.DetectContentType(buf[:n])
-	// strip parameters (e.g., ; charset=utf-8)
-	if idx := strings.IndexByte(detected, ';'); idx != -1 {
-		detected = strings.TrimSpace(detected[:idx])
-	}
-	if len(h.allowedTypes) > 0 {
-		ok := false
-		// flexible matching: exact or major-type match (wildcard-like)
-		for allowed := range h.allowedTypes {
-			if allowed == detected {
-				ok = true
-				break
-			}
-			// match major type, e.g., allowed "text/*" or "text/plain" should accept "text/csv"
-			if len(allowed) > 0 {
-				// split on '/'
-				aParts := strings.SplitN(allowed, "/", 2)
-				dParts := strings.SplitN(detected, "/", 2)
-				if len(aParts) == 2 && len(dParts) == 2 {
-					if aParts[1] == "*" && aParts[0] == dParts[0] {
-						ok = true
-						break
-					}
-					if aParts[0] == dParts[0] && aParts[1] == dParts[1] {
-						ok = true
-						break
-					}
-				}
-			}
-		}
-		if !ok {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid content type", "detected": detected})
-			return
-		}
+	detected, err := detectAndValidateContentType(fr, h.allowedTypes)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "detected": detected})
+		return
 	}
 
 	uploadResponse, err := h.service.UploadFile(c.Request.Context(), file, objectName)
 	if err != nil {
-		// Avoid leaking internal errors; return generic message
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to upload file"})
 		return
 	}
@@ -127,6 +80,60 @@ func (h *StorageHandler) Upload(c *gin.Context) {
 		"url":     uploadResponse.URL,
 		"path":    uploadResponse.ObjectName,
 	})
+}
+
+// resolveObjectName determines the final object name for storage
+func resolveObjectName(path, filename string) string {
+	if filepath.Base(path) == filename {
+		return path
+	}
+	return filepath.Join(path, filename)
+}
+
+// detectAndValidateContentType reads the first 512 bytes and validates against allowed types
+func detectAndValidateContentType(fr io.ReadSeeker, allowedTypes map[string]struct{}) (string, error) {
+	buf := make([]byte, 512)
+	n, _ := fr.Read(buf)
+	fr.Seek(0, io.SeekStart) // reset for later use
+	detected := http.DetectContentType(buf[:n])
+	if idx := strings.IndexByte(detected, ';'); idx != -1 {
+		detected = strings.TrimSpace(detected[:idx])
+	}
+	if len(allowedTypes) == 0 {
+		return detected, nil
+	}
+	if isAllowedContentType(detected, allowedTypes) {
+		return detected, nil
+	}
+	return detected, &contentTypeError{msg: "invalid content type"}
+}
+
+type contentTypeError struct {
+	msg string
+}
+
+func (e *contentTypeError) Error() string {
+	return e.msg
+}
+
+// isAllowedContentType checks if detected type matches allowed types (exact or major type)
+func isAllowedContentType(detected string, allowedTypes map[string]struct{}) bool {
+	for allowed := range allowedTypes {
+		if allowed == detected {
+			return true
+		}
+		aParts := strings.SplitN(allowed, "/", 2)
+		dParts := strings.SplitN(detected, "/", 2)
+		if len(aParts) == 2 && len(dParts) == 2 {
+			if aParts[1] == "*" && aParts[0] == dParts[0] {
+				return true
+			}
+			if aParts[0] == dParts[0] && aParts[1] == dParts[1] {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // Download godoc
