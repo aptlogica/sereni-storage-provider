@@ -15,6 +15,38 @@ services:
     restart: unless-stopped
     networks:
       - sereni-network
+    depends_on:
+      - minio
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      # MinIO configuration from .env
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+      MINIO_BUCKET: ${MINIO_BUCKET}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
+      MINIO_USE_SSL: ${MINIO_USE_SSL}
+      MINIO_CONSOLE_ADDRESS: ":9001"
+    volumes:
+      - minio_data:/data
+    entrypoint: >
+      sh -c '
+        /usr/bin/docker-entrypoint.sh server /data &
+        sleep 5
+        mc alias set myminio http://localhost:9000 "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY"
+        mc mb -p myminio/"$MINIO_BUCKET" || true
+        wait
+      '
+    networks:
+      - sereni-network
+
+volumes:
+  minio_data:
 
 networks:
   sereni-network:

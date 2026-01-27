@@ -40,6 +40,9 @@ COPY --from=builder /app/docs ./docs
 # Create uploads directory
 RUN mkdir -p /app/uploads
 
+
+# Environment variables are provided by .env via Docker Compose
+
 # Expose port
 EXPOSE 8083
 
