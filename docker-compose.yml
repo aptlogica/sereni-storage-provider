@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  sereni-storage-provider:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sereni-storage-provider
+    ports:
+      - "8083:8083"
+    env_file:
+      - .env
+    volumes:
+      - ./uploads:/app/uploads
+    restart: unless-stopped
+    networks:
+      - sereni-network
+
+networks:
+  sereni-network:
+    driver: bridge

@@ -1,0 +1,30 @@
+# Exclude version control
+.git
+.gitignore
+
+# Exclude environment files
+.env
+example.env
+
+# Exclude test files
+tests/
+
+# Exclude documentation and reports
+README.md
+report.md
+Jenkinsfile
+sonar-project.properties
+
+# Exclude logs
+*.log
+
+# Exclude uploads directory from build context (it's mounted as volume)
+uploads/
+
+# Exclude IDE files
+.vscode/
+.idea/
+
+# Exclude temporary files
+*.tmp
+*.swp
