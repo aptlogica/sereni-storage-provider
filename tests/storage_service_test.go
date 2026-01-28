@@ -18,6 +18,7 @@ type mockStorageProviderService struct {
 	DeleteFn      func(ctx context.Context, objectName string) error
 	ExistsFn      func(ctx context.Context, objectName string) (bool, error)
 	GetURLFn      func(ctx context.Context, objectName string) (string, error)
+	GetSizeFn     func(ctx context.Context, path string) (int64, bool, error)
 	HealthCheckFn func(ctx context.Context) error
 }
 
@@ -43,6 +44,13 @@ func (m *mockStorageProviderService) GetURL(ctx context.Context, objectName stri
 
 func (m *mockStorageProviderService) HealthCheck(ctx context.Context) error {
 	return m.HealthCheckFn(ctx)
+}
+
+func (m *mockStorageProviderService) GetSize(ctx context.Context, path string) (int64, bool, error) {
+	if m.GetSizeFn != nil {
+		return m.GetSizeFn(ctx, path)
+	}
+	return 0, false, nil
 }
 
 func TestNewStorageService(t *testing.T) {
@@ -310,5 +318,98 @@ func TestStorageService_HealthCheck(t *testing.T) {
 	err := service.HealthCheck(context.Background())
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestStorageService_GetSize(t *testing.T) {
+	tests := []struct {
+		name          string
+		path          string
+		mockFunc      func(ctx context.Context, path string) (int64, bool, error)
+		expectedSize  int64
+		expectedIsDir bool
+		expectError   bool
+	}{
+		{
+			name: "successful file size",
+			path: "uploads/test.txt",
+			mockFunc: func(ctx context.Context, path string) (int64, bool, error) {
+				return 1024, false, nil
+			},
+			expectedSize:  1024,
+			expectedIsDir: false,
+			expectError:   false,
+		},
+		{
+			name: "successful directory size",
+			path: "uploads/folder",
+			mockFunc: func(ctx context.Context, path string) (int64, bool, error) {
+				return 5242880, true, nil
+			},
+			expectedSize:  5242880,
+			expectedIsDir: true,
+			expectError:   false,
+		},
+		{
+			name: "empty path",
+			path: "",
+			mockFunc: func(ctx context.Context, path string) (int64, bool, error) {
+				return 0, false, nil
+			},
+			expectedSize:  0,
+			expectedIsDir: false,
+			expectError:   false,
+		},
+		{
+			name: "path with leading slash",
+			path: "/uploads/test.txt",
+			mockFunc: func(ctx context.Context, path string) (int64, bool, error) {
+				if path != "uploads/test.txt" {
+					t.Errorf("expected normalized path 'uploads/test.txt', got '%s'", path)
+				}
+				return 2048, false, nil
+			},
+			expectedSize:  2048,
+			expectedIsDir: false,
+			expectError:   false,
+		},
+		{
+			name: "error from provider",
+			path: "test.txt",
+			mockFunc: func(ctx context.Context, path string) (int64, bool, error) {
+				return 0, false, errors.New("provider error")
+			},
+			expectError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			provider := &mockStorageProviderService{
+				GetSizeFn: tt.mockFunc,
+			}
+			service := servicesPkg.NewStorageService(provider)
+
+			size, isDir, err := service.GetSize(context.Background(), tt.path)
+
+			if tt.expectError {
+				if err == nil {
+					t.Errorf("expected error, got nil")
+				}
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if size != tt.expectedSize {
+				t.Errorf("expected size %d, got %d", tt.expectedSize, size)
+			}
+
+			if isDir != tt.expectedIsDir {
+				t.Errorf("expected isDir %v, got %v", tt.expectedIsDir, isDir)
+			}
+		})
 	}
 }

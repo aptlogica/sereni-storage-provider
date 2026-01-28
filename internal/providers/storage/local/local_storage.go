@@ -153,3 +153,30 @@ func (l *LocalStorageProvider) HealthCheck(ctx context.Context) error {
 	}
 	return nil
 }
+
+// GetSize returns the size in bytes of a file or directory
+// Returns (size, isDirectory, error)
+func (l *LocalStorageProvider) GetSize(ctx context.Context, path string) (int64, bool, error) {
+	fullPath, err := file.SafeJoin(l.path, path)
+	if err != nil {
+		return 0, false, app_errors.ErrInvalidPath
+	}
+
+	fileInfo, err := os.Stat(fullPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return 0, false, app_errors.FileNotFound
+		}
+		return 0, false, err
+	}
+
+	if fileInfo.IsDir() {
+		size, err := file.CalculateDirSize(fullPath)
+		if err != nil {
+			return 0, true, fmt.Errorf("failed to calculate directory size: %w", err)
+		}
+		return size, true, nil
+	}
+
+	return fileInfo.Size(), false, nil
+}

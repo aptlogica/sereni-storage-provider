@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"path/filepath"
@@ -221,4 +222,63 @@ func (h *StorageHandler) Delete(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "File deleted successfully"})
+}
+
+// GetConsumption godoc
+// @Summary Get storage consumption
+// @Description Returns the size in bytes of a file or directory
+// @Tags storage
+// @Produce json
+// @Param path query string true "Path to the file or directory"
+// @Success 200 {object} map[string]interface{} "Storage consumption details"
+// @Failure 400 {object} map[string]string "Bad Request"
+// @Failure 404 {object} map[string]string "File Not Found"
+// @Failure 500 {object} map[string]string "Internal Server Error"
+// @Router /storage/consumption [get]
+func (h *StorageHandler) GetConsumption(c *gin.Context) {
+	path := c.Query("path")
+	if path == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Path parameter is required"})
+		return
+	}
+
+	size, isDir, err := h.service.GetSize(c.Request.Context(), path)
+	if err != nil {
+		switch err {
+		case app_errors.FileNotFound:
+			c.JSON(http.StatusNotFound, gin.H{"error": "file or directory not found"})
+			return
+		case app_errors.ErrInvalidPath:
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid path"})
+			return
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get size information"})
+			return
+		}
+	}
+
+	response := gin.H{
+		"path":         path,
+		"size_bytes":   size,
+		"is_directory": isDir,
+	}
+
+	// Add human-readable size
+	response["size_human"] = formatBytes(size)
+
+	c.JSON(http.StatusOK, response)
+}
+
+// formatBytes converts bytes to human-readable format
+func formatBytes(bytes int64) string {
+	const unit = 1024
+	if bytes < unit {
+		return fmt.Sprintf("%d B", bytes)
+	}
+	div, exp := int64(unit), 0
+	for n := bytes / unit; n >= unit; n /= unit {
+		div *= unit
+		exp++
+	}
+	return fmt.Sprintf("%.2f %cB", float64(bytes)/float64(div), "KMGTPE"[exp])
 }

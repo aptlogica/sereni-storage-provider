@@ -32,10 +32,7 @@ import (
 // @BasePath /api/v1
 func main() {
 	// 1. Load Configuration
-	cfg, err := config.LoadConfig()
-	if err != nil {
-		log.Fatal().Err(err).Msg("failed to load configuration")
-	}
+	cfg, _ := config.LoadConfig()
 
 	// initialize logger
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix

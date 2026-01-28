@@ -42,6 +42,10 @@ func (m *mockHealthProvider) HealthCheck(ctx context.Context) error {
 	return m.healthCheckFn(ctx)
 }
 
+func (m *mockHealthProvider) GetSize(ctx context.Context, path string) (int64, bool, error) {
+	return 0, false, nil
+}
+
 func TestNewHealthHandler(t *testing.T) {
 	provider := &mockHealthProvider{}
 	service := services.NewStorageService(provider)

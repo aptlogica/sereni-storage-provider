@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	app_errors "sereni-storage-provider/internal/app-errors"
 	"sereni-storage-provider/internal/config"
 	localPkg "sereni-storage-provider/internal/providers/storage/local"
 	"strings"
@@ -358,5 +359,98 @@ func TestLocalStorageProvider_HealthCheck(t *testing.T) {
 	err = provider.HealthCheck(context.Background())
 	if err == nil {
 		t.Fatalf("expected error after removing directory, got nil")
+	}
+}
+
+func TestLocalStorageProvider_GetSize(t *testing.T) {
+	tempDir := t.TempDir()
+	cfg := config.StorageDevConfig{Path: tempDir}
+	serverCfg := config.ServerConfig{Scheme: "http", Host: "localhost", Port: "8080"}
+	provider, err := localPkg.NewLocalStorageProvider(&cfg, &serverCfg)
+	if err != nil {
+		t.Fatalf("failed to create provider: %v", err)
+	}
+
+	// Create test files
+	file1Content := "test content 1"
+	file2Content := "test content 2 longer"
+	_, err = provider.Upload(context.Background(), "file1.txt", strings.NewReader(file1Content), int64(len(file1Content)), "text/plain")
+	if err != nil {
+		t.Fatalf("failed to upload file1: %v", err)
+	}
+	_, err = provider.Upload(context.Background(), "subdir/file2.txt", strings.NewReader(file2Content), int64(len(file2Content)), "text/plain")
+	if err != nil {
+		t.Fatalf("failed to upload file2: %v", err)
+	}
+
+	tests := []struct {
+		name          string
+		path          string
+		expectedSize  int64
+		expectedIsDir bool
+		expectError   bool
+		errorType     error
+	}{
+		{
+			name:          "single file size",
+			path:          "file1.txt",
+			expectedSize:  14, // len("test content 1")
+			expectedIsDir: false,
+			expectError:   false,
+		},
+		{
+			name:          "file in subdirectory",
+			path:          "subdir/file2.txt",
+			expectedSize:  21, // len("test content 2 longer")
+			expectedIsDir: false,
+			expectError:   false,
+		},
+		{
+			name:          "directory size",
+			path:          "subdir",
+			expectedSize:  21, // size of file2.txt
+			expectedIsDir: true,
+			expectError:   false,
+		},
+		{
+			name:        "file not found",
+			path:        "nonexistent.txt",
+			expectError: true,
+			errorType:   app_errors.FileNotFound,
+		},
+		{
+			name:        "invalid path traversal",
+			path:        "../outside.txt",
+			expectError: true,
+			errorType:   app_errors.ErrInvalidPath,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			size, isDir, err := provider.GetSize(context.Background(), tt.path)
+
+			if tt.expectError {
+				if err == nil {
+					t.Errorf("expected error, got nil")
+				}
+				if tt.errorType != nil && err != tt.errorType {
+					t.Errorf("expected error type %v, got %v", tt.errorType, err)
+				}
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if size != tt.expectedSize {
+				t.Errorf("expected size %d, got %d", tt.expectedSize, size)
+			}
+
+			if isDir != tt.expectedIsDir {
+				t.Errorf("expected isDir %v, got %v", tt.expectedIsDir, isDir)
+			}
+		})
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	"sereni-storage-provider/internal/config"
@@ -106,4 +107,49 @@ func (m *MinioStorageProvider) HealthCheck(ctx context.Context) error {
 		return fmt.Errorf("minio bucket %s does not exist", m.Bucket)
 	}
 	return nil
+}
+
+// GetSize returns the size in bytes of an object or directory in MinIO
+// For MinIO, directories are virtual - they are prefixes for object keys
+// Returns (size, isDirectory, error)
+func (m *MinioStorageProvider) GetSize(ctx context.Context, objectName string) (int64, bool, error) {
+	// First try to get as a single object
+	stat, err := m.Client.StatObject(ctx, m.Bucket, objectName, minio.StatObjectOptions{})
+	if err == nil {
+		// Object exists, return its size
+		return stat.Size, false, nil
+	}
+
+	// If the path ends with "/", treat it as a directory
+	if strings.HasSuffix(objectName, "/") {
+		size, err := m.getDirectorySize(ctx, objectName)
+		return size, true, err
+	}
+
+	// Otherwise, return the error
+	return 0, false, fmt.Errorf("failed to get object metadata: %w", err)
+}
+
+// getDirectorySize calculates the total size of all objects with the given prefix
+func (m *MinioStorageProvider) getDirectorySize(ctx context.Context, prefix string) (int64, error) {
+	// Ensure prefix ends with "/" for directory-like behavior
+	if prefix != "" && !strings.HasSuffix(prefix, "/") {
+		prefix += "/"
+	}
+
+	var totalSize int64
+
+	// List all objects with the prefix
+	opts := minio.ListObjectsOptions{
+		Prefix:    prefix,
+		Recursive: true,
+	}
+	for object := range m.Client.ListObjects(ctx, m.Bucket, opts) {
+		if object.Err != nil {
+			return 0, fmt.Errorf("failed to list objects: %w", object.Err)
+		}
+		totalSize += object.Size
+	}
+
+	return totalSize, nil
 }
