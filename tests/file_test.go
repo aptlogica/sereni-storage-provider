@@ -132,3 +132,59 @@ func TestSafeJoin(t *testing.T) {
 		})
 	}
 }
+
+func TestCalculateDirSize(t *testing.T) {
+	tempDir := t.TempDir()
+
+	// Create test files
+	file1 := filepath.Join(tempDir, "file1.txt")
+	file2 := filepath.Join(tempDir, "file2.txt")
+	subdir := filepath.Join(tempDir, "subdir")
+	file3 := filepath.Join(subdir, "file3.txt")
+
+	os.WriteFile(file1, []byte("12345"), 0644)      // 5 bytes
+	os.WriteFile(file2, []byte("1234567890"), 0644) // 10 bytes
+	os.MkdirAll(subdir, 0755)
+	os.WriteFile(file3, []byte("abc"), 0644) // 3 bytes
+
+	tests := []struct {
+		name         string
+		path         string
+		expectedSize int64
+		expectError  bool
+	}{
+		{
+			name:         "calculate directory size",
+			path:         tempDir,
+			expectedSize: 18, // 5 + 10 + 3
+			expectError:  false,
+		},
+		{
+			name:         "nonexistent directory",
+			path:         filepath.Join(tempDir, "nonexistent"),
+			expectedSize: 0,
+			expectError:  true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			size, err := filePkg.CalculateDirSize(tt.path)
+
+			if tt.expectError {
+				if err == nil {
+					t.Fatalf("expected error, got nil")
+				}
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if size != tt.expectedSize {
+				t.Errorf("expected size %d, got %d", tt.expectedSize, size)
+			}
+		})
+	}
+}

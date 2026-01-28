@@ -30,6 +30,7 @@ type mockMinioClient struct {
 	statObjectFunc         func(ctx context.Context, bucket, object string, opts minio.StatObjectOptions) (minio.ObjectInfo, error)
 	bucketExistsFunc       func(ctx context.Context, bucket string) (bool, error)
 	presignedGetObjectFunc func(ctx context.Context, bucket, object string, expiry time.Duration, reqParams url.Values) (*url.URL, error)
+	listObjectsFunc        func(ctx context.Context, bucketName string, opts minio.ListObjectsOptions) <-chan minio.ObjectInfo
 	endpointURLFunc        func() *url.URL
 }
 
@@ -59,6 +60,10 @@ func (m *mockMinioClient) PresignedGetObject(ctx context.Context, bucket, object
 
 func (m *mockMinioClient) EndpointURL() *url.URL {
 	return m.endpointURLFunc()
+}
+
+func (m *mockMinioClient) ListObjects(ctx context.Context, bucketName string, opts minio.ListObjectsOptions) <-chan minio.ObjectInfo {
+	return m.listObjectsFunc(ctx, bucketName, opts)
 }
 
 func TestNewMinioStorageProvider(t *testing.T) {
@@ -381,6 +386,159 @@ func TestMinioStorageProvider_Upload(t *testing.T) {
 
 			if result != tt.expectedURL {
 				t.Errorf("expected URL %s, got %s", tt.expectedURL, result)
+			}
+		})
+	}
+}
+
+func TestMinioStorageProvider_GetSize(t *testing.T) {
+	tests := []struct {
+		name          string
+		objectName    string
+		mockFunc      func(ctx context.Context, bucket, object string, opts minio.StatObjectOptions) (minio.ObjectInfo, error)
+		listFunc      func(ctx context.Context, bucketName string, opts minio.ListObjectsOptions) <-chan minio.ObjectInfo
+		expectedSize  int64
+		expectedIsDir bool
+		expectError   bool
+	}{
+		{
+			name:       "successful get size",
+			objectName: "test.txt",
+			mockFunc: func(ctx context.Context, bucket, object string, opts minio.StatObjectOptions) (minio.ObjectInfo, error) {
+				return minio.ObjectInfo{
+					Size: 2048,
+				}, nil
+			},
+			expectedSize:  2048,
+			expectedIsDir: false,
+			expectError:   false,
+		},
+		{
+			name:       "large file",
+			objectName: "large.dat",
+			mockFunc: func(ctx context.Context, bucket, object string, opts minio.StatObjectOptions) (minio.ObjectInfo, error) {
+				return minio.ObjectInfo{
+					Size: 10485760,
+				}, nil
+			},
+			expectedSize:  10485760,
+			expectedIsDir: false,
+			expectError:   false,
+		},
+		{
+			name:       "zero size file",
+			objectName: "empty.txt",
+			mockFunc: func(ctx context.Context, bucket, object string, opts minio.StatObjectOptions) (minio.ObjectInfo, error) {
+				return minio.ObjectInfo{
+					Size: 0,
+				}, nil
+			},
+			expectedSize:  0,
+			expectedIsDir: false,
+			expectError:   false,
+		},
+		{
+			name:       "object not found",
+			objectName: "nonexistent.txt",
+			mockFunc: func(ctx context.Context, bucket, object string, opts minio.StatObjectOptions) (minio.ObjectInfo, error) {
+				return minio.ObjectInfo{}, mockMinioError{
+					ErrorResponse: minio.ErrorResponse{
+						Code: "NoSuchKey",
+					},
+				}
+			},
+			expectError: true,
+		},
+		{
+			name:       "generic error",
+			objectName: "error.txt",
+			mockFunc: func(ctx context.Context, bucket, object string, opts minio.StatObjectOptions) (minio.ObjectInfo, error) {
+				return minio.ObjectInfo{}, errors.New("network error")
+			},
+			expectError: true,
+		},
+		{
+			name:       "directory size calculation",
+			objectName: "uploads/",
+			mockFunc: func(ctx context.Context, bucket, object string, opts minio.StatObjectOptions) (minio.ObjectInfo, error) {
+				return minio.ObjectInfo{}, mockMinioError{
+					ErrorResponse: minio.ErrorResponse{
+						Code:    "NoSuchKey",
+						Message: "The specified key does not exist.",
+					},
+				}
+			},
+			listFunc: func(ctx context.Context, bucketName string, opts minio.ListObjectsOptions) <-chan minio.ObjectInfo {
+				ch := make(chan minio.ObjectInfo, 3)
+				go func() {
+					defer close(ch)
+					ch <- minio.ObjectInfo{Key: "uploads/file1.txt", Size: 1024}
+					ch <- minio.ObjectInfo{Key: "uploads/file2.txt", Size: 2048}
+					ch <- minio.ObjectInfo{Key: "uploads/file3.txt", Size: 2048}
+				}()
+				return ch
+			},
+			expectedSize:  5120, // 5KB total
+			expectedIsDir: true,
+			expectError:   false,
+		},
+		{
+			name:       "empty directory",
+			objectName: "empty/",
+			mockFunc: func(ctx context.Context, bucket, object string, opts minio.StatObjectOptions) (minio.ObjectInfo, error) {
+				return minio.ObjectInfo{}, mockMinioError{
+					ErrorResponse: minio.ErrorResponse{
+						Code:    "NoSuchKey",
+						Message: "The specified key does not exist.",
+					},
+				}
+			},
+			listFunc: func(ctx context.Context, bucketName string, opts minio.ListObjectsOptions) <-chan minio.ObjectInfo {
+				ch := make(chan minio.ObjectInfo)
+				close(ch) // Empty channel for empty directory
+				return ch
+			},
+			expectedSize:  0,
+			expectedIsDir: true,
+			expectError:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			endpointURL, _ := url.Parse("http://localhost:9000")
+			mock := &mockMinioClient{
+				statObjectFunc:  tt.mockFunc,
+				listObjectsFunc: tt.listFunc,
+				endpointURLFunc: func() *url.URL {
+					return endpointURL
+				},
+			}
+
+			provider := &minioPkg.MinioStorageProvider{
+				Client: mock,
+				Bucket: "test-bucket",
+			}
+
+			size, isDir, err := provider.GetSize(context.Background(), tt.objectName)
+
+			if tt.expectError {
+				if err == nil {
+					t.Errorf("expected error, got nil")
+				}
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if size != tt.expectedSize {
+				t.Errorf("expected size %d, got %d", tt.expectedSize, size)
+			}
+
+			if isDir != tt.expectedIsDir {
+				t.Errorf("expected isDir %v, got %v", tt.expectedIsDir, isDir)
 			}
 		})
 	}

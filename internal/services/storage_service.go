@@ -98,3 +98,12 @@ func (s *StorageService) GetFileURL(ctx context.Context, path string) (string, e
 func (s *StorageService) HealthCheck(ctx context.Context) error {
 	return s.provider.HealthCheck(ctx)
 }
+
+// GetSize returns the size in bytes and whether the path is a directory
+func (s *StorageService) GetSize(ctx context.Context, path string) (int64, bool, error) {
+	cleanPath := NormalizePath(path)
+	if cleanPath == "" {
+		return 0, false, nil
+	}
+	return s.provider.GetSize(ctx, cleanPath)
+}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	app_config "sereni-storage-provider/internal/config"
@@ -131,4 +132,57 @@ func (s *S3StorageProvider) HealthCheck(ctx context.Context) error {
 		return fmt.Errorf("s3 health check failed: %w", err)
 	}
 	return nil
+}
+
+// GetSize returns the size in bytes of an object or directory in S3
+// For S3, directories are virtual - they are prefixes for object keys
+// Returns (size, isDirectory, error)
+func (s *S3StorageProvider) GetSize(ctx context.Context, objectName string) (int64, bool, error) {
+	// First try to get as a single object
+	out, err := s.Client.HeadObject(ctx, &s3.HeadObjectInput{
+		Bucket: aws.String(s.Bucket),
+		Key:    aws.String(objectName),
+	})
+	if err == nil && out.ContentLength != nil {
+		// Object exists, return its size
+		return *out.ContentLength, false, nil
+	}
+
+	// If the path ends with "/", treat it as a directory
+	if strings.HasSuffix(objectName, "/") {
+		size, err := s.getDirectorySize(ctx, objectName)
+		return size, true, err
+	}
+
+	// Otherwise, return the HeadObject error
+	return 0, false, fmt.Errorf("failed to get object metadata: %w", err)
+}
+
+// getDirectorySize calculates the total size of all objects with the given prefix
+func (s *S3StorageProvider) getDirectorySize(ctx context.Context, prefix string) (int64, error) {
+	// Ensure prefix ends with "/" for directory-like behavior
+	if prefix != "" && !strings.HasSuffix(prefix, "/") {
+		prefix += "/"
+	}
+
+	var totalSize int64
+	paginator := s3.NewListObjectsV2Paginator(s.Client, &s3.ListObjectsV2Input{
+		Bucket: aws.String(s.Bucket),
+		Prefix: aws.String(prefix),
+	})
+
+	for paginator.HasMorePages() {
+		page, err := paginator.NextPage(ctx)
+		if err != nil {
+			return 0, fmt.Errorf("failed to list objects: %w", err)
+		}
+
+		for _, obj := range page.Contents {
+			if obj.Size != nil {
+				totalSize += *obj.Size
+			}
+		}
+	}
+
+	return totalSize, nil
 }

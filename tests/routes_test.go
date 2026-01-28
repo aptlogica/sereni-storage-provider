@@ -41,6 +41,10 @@ func (m *MockStorageProvider) HealthCheck(ctx context.Context) error {
 	return nil
 }
 
+func (m *MockStorageProvider) GetSize(ctx context.Context, path string) (int64, bool, error) {
+	return 0, false, nil
+}
+
 func TestSetupRoutes(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 

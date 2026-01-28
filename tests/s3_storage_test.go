@@ -9,17 +9,20 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	aws_config "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 )
 
 type mockS3Client struct {
-	deleteObjectFunc func(ctx context.Context, params *s3.DeleteObjectInput, optFns ...func(*s3.Options)) (*s3.DeleteObjectOutput, error)
-	getObjectFunc    func(ctx context.Context, params *s3.GetObjectInput, optFns ...func(*s3.Options)) (*s3.GetObjectOutput, error)
-	putObjectFunc    func(ctx context.Context, params *s3.PutObjectInput, optFns ...func(*s3.Options)) (*s3.PutObjectOutput, error)
-	headObjectFunc   func(ctx context.Context, params *s3.HeadObjectInput, optFns ...func(*s3.Options)) (*s3.HeadObjectOutput, error)
-	headBucketFunc   func(ctx context.Context, params *s3.HeadBucketInput, optFns ...func(*s3.Options)) (*s3.HeadBucketOutput, error)
+	deleteObjectFunc  func(ctx context.Context, params *s3.DeleteObjectInput, optFns ...func(*s3.Options)) (*s3.DeleteObjectOutput, error)
+	getObjectFunc     func(ctx context.Context, params *s3.GetObjectInput, optFns ...func(*s3.Options)) (*s3.GetObjectOutput, error)
+	putObjectFunc     func(ctx context.Context, params *s3.PutObjectInput, optFns ...func(*s3.Options)) (*s3.PutObjectOutput, error)
+	headObjectFunc    func(ctx context.Context, params *s3.HeadObjectInput, optFns ...func(*s3.Options)) (*s3.HeadObjectOutput, error)
+	headBucketFunc    func(ctx context.Context, params *s3.HeadBucketInput, optFns ...func(*s3.Options)) (*s3.HeadBucketOutput, error)
+	listObjectsV2Func func(ctx context.Context, params *s3.ListObjectsV2Input, optFns ...func(*s3.Options)) (*s3.ListObjectsV2Output, error)
 }
 
 func (m *mockS3Client) DeleteObject(ctx context.Context, params *s3.DeleteObjectInput, optFns ...func(*s3.Options)) (*s3.DeleteObjectOutput, error) {
@@ -40,6 +43,10 @@ func (m *mockS3Client) HeadObject(ctx context.Context, params *s3.HeadObjectInpu
 
 func (m *mockS3Client) HeadBucket(ctx context.Context, params *s3.HeadBucketInput, optFns ...func(*s3.Options)) (*s3.HeadBucketOutput, error) {
 	return m.headBucketFunc(ctx, params, optFns...)
+}
+
+func (m *mockS3Client) ListObjectsV2(ctx context.Context, params *s3.ListObjectsV2Input, optFns ...func(*s3.Options)) (*s3.ListObjectsV2Output, error) {
+	return m.listObjectsV2Func(ctx, params, optFns...)
 }
 
 func TestNewS3StorageProvider(t *testing.T) {
@@ -407,4 +414,134 @@ func createInvalidS3Client(t *testing.T) *s3.Client {
 		t.Fatalf("failed to create AWS config: %v", err)
 	}
 	return s3.NewFromConfig(cfg)
+}
+
+func TestS3StorageProvider_GetSize(t *testing.T) {
+	tests := []struct {
+		name          string
+		objectName    string
+		mockFunc      func(ctx context.Context, params *s3.HeadObjectInput, optFns ...func(*s3.Options)) (*s3.HeadObjectOutput, error)
+		listFunc      func(ctx context.Context, params *s3.ListObjectsV2Input, optFns ...func(*s3.Options)) (*s3.ListObjectsV2Output, error)
+		expectedSize  int64
+		expectedIsDir bool
+		expectError   bool
+	}{
+		{
+			name:       "successful get size",
+			objectName: "test.txt",
+			mockFunc: func(ctx context.Context, params *s3.HeadObjectInput, optFns ...func(*s3.Options)) (*s3.HeadObjectOutput, error) {
+				size := int64(1024)
+				return &s3.HeadObjectOutput{
+					ContentLength: &size,
+				}, nil
+			},
+			expectedSize:  1024,
+			expectedIsDir: false,
+			expectError:   false,
+		},
+		{
+			name:       "large file",
+			objectName: "large.dat",
+			mockFunc: func(ctx context.Context, params *s3.HeadObjectInput, optFns ...func(*s3.Options)) (*s3.HeadObjectOutput, error) {
+				size := int64(5242880)
+				return &s3.HeadObjectOutput{
+					ContentLength: &size,
+				}, nil
+			},
+			expectedSize:  5242880,
+			expectedIsDir: false,
+			expectError:   false,
+		},
+		{
+			name:       "object not found",
+			objectName: "nonexistent.txt",
+			mockFunc: func(ctx context.Context, params *s3.HeadObjectInput, optFns ...func(*s3.Options)) (*s3.HeadObjectOutput, error) {
+				return nil, errors.New("NoSuchKey")
+			},
+			expectError: true,
+		},
+		{
+			name:       "nil content length",
+			objectName: "test.txt",
+			mockFunc: func(ctx context.Context, params *s3.HeadObjectInput, optFns ...func(*s3.Options)) (*s3.HeadObjectOutput, error) {
+				return &s3.HeadObjectOutput{
+					ContentLength: nil,
+				}, nil
+			},
+			expectError: true,
+		},
+		{
+			name:       "directory size calculation",
+			objectName: "uploads/",
+			mockFunc: func(ctx context.Context, params *s3.HeadObjectInput, optFns ...func(*s3.Options)) (*s3.HeadObjectOutput, error) {
+				return nil, errors.New("NoSuchKey")
+			},
+			listFunc: func(ctx context.Context, params *s3.ListObjectsV2Input, optFns ...func(*s3.Options)) (*s3.ListObjectsV2Output, error) {
+				size1 := int64(1024)
+				size2 := int64(2048)
+				size3 := int64(2048)
+				return &s3.ListObjectsV2Output{
+					Contents: []types.Object{
+						{Key: aws.String("uploads/file1.txt"), Size: &size1},
+						{Key: aws.String("uploads/file2.txt"), Size: &size2},
+						{Key: aws.String("uploads/file3.txt"), Size: &size3},
+					},
+				}, nil
+			},
+			expectedSize:  5120, // 5KB total
+			expectedIsDir: true,
+			expectError:   false,
+		},
+		{
+			name:       "empty directory",
+			objectName: "empty/",
+			mockFunc: func(ctx context.Context, params *s3.HeadObjectInput, optFns ...func(*s3.Options)) (*s3.HeadObjectOutput, error) {
+				return nil, errors.New("NoSuchKey")
+			},
+			listFunc: func(ctx context.Context, params *s3.ListObjectsV2Input, optFns ...func(*s3.Options)) (*s3.ListObjectsV2Output, error) {
+				return &s3.ListObjectsV2Output{
+					Contents: []types.Object{},
+				}, nil
+			},
+			expectedSize:  0,
+			expectedIsDir: true,
+			expectError:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mock := &mockS3Client{
+				headObjectFunc:    tt.mockFunc,
+				listObjectsV2Func: tt.listFunc,
+			}
+
+			provider := &s3Pkg.S3StorageProvider{
+				Client: mock,
+				Bucket: "test-bucket",
+				Region: "us-east-1",
+			}
+
+			size, isDir, err := provider.GetSize(context.Background(), tt.objectName)
+
+			if tt.expectError {
+				if err == nil {
+					t.Errorf("expected error, got nil")
+				}
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if size != tt.expectedSize {
+				t.Errorf("expected size %d, got %d", tt.expectedSize, size)
+			}
+
+			if isDir != tt.expectedIsDir {
+				t.Errorf("expected isDir %v, got %v", tt.expectedIsDir, isDir)
+			}
+		})
+	}
 }
