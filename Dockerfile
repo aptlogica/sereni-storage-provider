@@ -51,4 +51,4 @@ ENV SERVER_PORT=5050
 ENV SERVER_HOST=0.0.0.0
 
 # Run the application
-CMD ["./storage-provider"]
+CMD ["./main"]
