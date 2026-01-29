@@ -4,7 +4,6 @@
 
 # Exclude environment files
 .env
-example.env
 
 # Exclude test files
 tests/
