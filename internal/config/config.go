@@ -63,7 +63,7 @@ func LoadConfig() (Config, error) {
 	// Set defaults
 	viper.SetDefault("STORAGE_DRIVER", "local")
 	viper.SetDefault("STORAGE_DEV_PATH", "./uploads")
-	viper.SetDefault("SERVER_PORT", "8080")
+	viper.SetDefault("SERVER_PORT", "5050")
 	viper.SetDefault("SERVER_HOST", "localhost")
 	viper.SetDefault("SERVER_SCHEME", "http")
 	viper.SetDefault("MAX_UPLOAD_SIZE_BYTES", 10<<20) // 10 MiB
