@@ -50,19 +50,53 @@
                 }
             }
         },
-        "/ping": {
+        "/storage/consumption": {
             "get": {
-                "description": "Checks if the API is reachable",
+                "description": "Returns the size in bytes of a file or directory",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "health"
+                    "storage"
                 ],
-                "summary": "Ping check",
+                "summary": "Get storage consumption",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Path to the file or directory",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "pong",
+                        "description": "Storage consumption details",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "File Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {

@@ -34,21 +34,44 @@ paths:
       summary: Health check
       tags:
       - health
-  /ping:
+  /storage/consumption:
     get:
-      description: Checks if the API is reachable
+      description: Returns the size in bytes of a file or directory
+      parameters:
+      - description: Path to the file or directory
+        in: query
+        name: path
+        required: true
+        type: string
       produces:
       - application/json
       responses:
         "200":
-          description: pong
+          description: Storage consumption details
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
           schema:
             additionalProperties:
               type: string
             type: object
-      summary: Ping check
+        "404":
+          description: File Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get storage consumption
       tags:
-      - health
+      - storage
   /storage/delete:
     delete:
       description: Deletes a file from the configured storage provider

@@ -1,8 +1,6 @@
 package config
 
 import (
-	"log"
-
 	"github.com/spf13/viper"
 )
 
@@ -15,6 +13,8 @@ type ServerConfig struct {
 	Port   string
 	Host   string
 	Scheme string
+	// MaxUploadSizeBytes caps max upload size accepted by server in bytes
+	MaxUploadSizeBytes int64
 }
 
 type StorageConfig struct {
@@ -45,21 +45,19 @@ type StorageAWSConfig struct {
 	Endpoint     string // Optional, for custom S3 compatible services
 }
 
-var AppConfig Config
+// LoadConfig reads configuration from environment and optional .env file
+// and returns a Config. It does not mutate package globals.
+func LoadConfig() (Config, error) {
+	var cfg Config
 
-func LoadConfig() {
 	viper.SetConfigName(".env")
 	viper.SetConfigType("env")
 	viper.AddConfigPath(".")
 	viper.AutomaticEnv()
 
-	// Try to read config file
-	if err := viper.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-			log.Printf("Error reading config file: %v", err)
-		}
-	} else {
-		log.Println("Using config file:", viper.ConfigFileUsed())
+	// Try to read config file, but non-fatal if missing
+	if err := viper.ReadInConfig(); err == nil {
+		// config file found
 	}
 
 	// Set defaults
@@ -68,34 +66,27 @@ func LoadConfig() {
 	viper.SetDefault("SERVER_PORT", "5050")
 	viper.SetDefault("SERVER_HOST", "localhost")
 	viper.SetDefault("SERVER_SCHEME", "http")
+	viper.SetDefault("MAX_UPLOAD_SIZE_BYTES", 10<<20) // 10 MiB
 
-	// Bind Environment Variables manually if needed or structure them
-	// Viper handles nested structs via dot notation in env vars if configured,
-	// but standard env vars are usually STORAGE_DRIVER.
-	// We will manually map for clarity and robust control.
+	cfg.Server.Port = viper.GetString("SERVER_PORT")
+	cfg.Server.Host = viper.GetString("SERVER_HOST")
+	cfg.Server.Scheme = viper.GetString("SERVER_SCHEME")
+	cfg.Server.MaxUploadSizeBytes = viper.GetInt64("MAX_UPLOAD_SIZE_BYTES")
 
-	AppConfig.Server.Port = viper.GetString("SERVER_PORT")
-	AppConfig.Server.Host = viper.GetString("SERVER_HOST")
-	AppConfig.Server.Scheme = viper.GetString("SERVER_SCHEME")
+	cfg.Storage.Driver = viper.GetString("STORAGE_DRIVER")
+	cfg.Storage.Dev.Path = viper.GetString("STORAGE_DEV_PATH")
 
-	AppConfig.Storage.Driver = viper.GetString("STORAGE_DRIVER")
+	cfg.Storage.Minio.Endpoint = viper.GetString("MINIO_ENDPOINT")
+	cfg.Storage.Minio.AccessKey = viper.GetString("MINIO_ACCESS_KEY")
+	cfg.Storage.Minio.SecretKey = viper.GetString("MINIO_SECRET_KEY")
+	cfg.Storage.Minio.Bucket = viper.GetString("MINIO_BUCKET")
+	cfg.Storage.Minio.UseSSL = viper.GetBool("MINIO_USE_SSL")
 
-	// Local
-	AppConfig.Storage.Dev.Path = viper.GetString("STORAGE_DEV_PATH")
+	cfg.Storage.AWS.Region = viper.GetString("AWS_REGION")
+	cfg.Storage.AWS.Bucket = viper.GetString("AWS_BUCKET")
+	cfg.Storage.AWS.AccessKey = viper.GetString("AWS_ACCESS_KEY")
+	cfg.Storage.AWS.SecretKey = viper.GetString("AWS_SECRET_KEY")
+	cfg.Storage.AWS.Endpoint = viper.GetString("AWS_ENDPOINT")
 
-	// MinIO
-	AppConfig.Storage.Minio.Endpoint = viper.GetString("MINIO_ENDPOINT")
-	AppConfig.Storage.Minio.AccessKey = viper.GetString("MINIO_ACCESS_KEY")
-	AppConfig.Storage.Minio.SecretKey = viper.GetString("MINIO_SECRET_KEY")
-	AppConfig.Storage.Minio.Bucket = viper.GetString("MINIO_BUCKET")
-	AppConfig.Storage.Minio.UseSSL = viper.GetBool("MINIO_USE_SSL")
-
-	// AWS
-	AppConfig.Storage.AWS.Region = viper.GetString("AWS_REGION")
-	AppConfig.Storage.AWS.Bucket = viper.GetString("AWS_BUCKET")
-	AppConfig.Storage.AWS.AccessKey = viper.GetString("AWS_ACCESS_KEY")
-	AppConfig.Storage.AWS.SecretKey = viper.GetString("AWS_SECRET_KEY")
-	AppConfig.Storage.AWS.Endpoint = viper.GetString("AWS_ENDPOINT")
-
-	log.Println("Configuration loaded.")
+	return cfg, nil
 }

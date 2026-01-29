@@ -17,17 +17,6 @@ func NewHealthHandler(service *services.StorageService) *HealthHandler {
 	}
 }
 
-// Ping godoc
-// @Summary Ping check
-// @Description Checks if the API is reachable
-// @Tags health
-// @Produce json
-// @Success 200 {object} map[string]string "pong"
-// @Router /ping [get]
-func (h *HealthHandler) Ping(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "pong"})
-}
-
 // Health godoc
 // @Summary Health check
 // @Description Checks the health of the storage provider
