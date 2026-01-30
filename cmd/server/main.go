@@ -49,8 +49,8 @@ func main() {
 	storageService := services.NewStorageService(provider)
 
 	// 4. Initialize Handler Layer
-	// allowed content types - default set (can be made configurable)
-	allowedTypes := []string{"application/octet-stream", "image/png", "image/jpeg", "text/csv", "text/plain"}
+	// allowed content types - allow all types by passing an empty slice
+	allowedTypes := []string{}
 
 	storageHandler := handlers.NewStorageHandler(storageService, cfg.Server.MaxUploadSizeBytes, allowedTypes)
 	healthHandler := handlers.NewHealthHandler(storageService)
