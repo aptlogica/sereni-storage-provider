@@ -1,6 +1,8 @@
 package config
 
 import (
+	"strings"
+
 	"github.com/spf13/viper"
 )
 
@@ -15,6 +17,8 @@ type ServerConfig struct {
 	Scheme string
 	// MaxUploadSizeBytes caps max upload size accepted by server in bytes
 	MaxUploadSizeBytes int64
+	// AllowedOrigins for CORS
+	AllowedOrigins []string
 }
 
 type StorageConfig struct {
@@ -67,11 +71,22 @@ func LoadConfig() (Config, error) {
 	viper.SetDefault("SERVER_HOST", "localhost")
 	viper.SetDefault("SERVER_SCHEME", "http")
 	viper.SetDefault("MAX_UPLOAD_SIZE_BYTES", 10<<20) // 10 MiB
+	viper.SetDefault("ALLOWED_ORIGINS", "*")
 
 	cfg.Server.Port = viper.GetString("SERVER_PORT")
 	cfg.Server.Host = viper.GetString("SERVER_HOST")
 	cfg.Server.Scheme = viper.GetString("SERVER_SCHEME")
 	cfg.Server.MaxUploadSizeBytes = viper.GetInt64("MAX_UPLOAD_SIZE_BYTES")
+	// Parse allowed origins (comma-separated)
+	origins := viper.GetString("ALLOWED_ORIGINS")
+	if origins == "*" || origins == "" {
+		cfg.Server.AllowedOrigins = []string{"*"}
+	} else {
+		cfg.Server.AllowedOrigins = strings.Split(origins, ",")
+		for i := range cfg.Server.AllowedOrigins {
+			cfg.Server.AllowedOrigins[i] = strings.TrimSpace(cfg.Server.AllowedOrigins[i])
+		}
+	}
 
 	cfg.Storage.Driver = viper.GetString("STORAGE_DRIVER")
 	cfg.Storage.Dev.Path = viper.GetString("STORAGE_DEV_PATH")
