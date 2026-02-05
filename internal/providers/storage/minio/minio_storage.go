@@ -15,11 +15,12 @@ import (
 )
 
 type MinioStorageProvider struct {
-	Client interfaces.MinioClient
-	Bucket string
+	Client  interfaces.MinioClient
+	Bucket  string
+	baseURL string // Base URL for constructing asset URLs
 }
 
-func NewMinioStorageProvider(cfg *config.StorageMinioConfig) (interfaces.StorageProvider, error) {
+func NewMinioStorageProvider(cfg *config.StorageMinioConfig, serverCfg *config.ServerConfig) (interfaces.StorageProvider, error) {
 	client, err := minio.New(cfg.Endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(cfg.AccessKey, cfg.SecretKey, ""),
 		Secure: cfg.UseSSL,
@@ -43,9 +44,16 @@ func NewMinioStorageProvider(cfg *config.StorageMinioConfig) (interfaces.Storage
 		return nil, fmt.Errorf("minio bucket %s does not exist", cfg.Bucket)
 	}
 
+	// Construct base URL for serving files using SERVER_IP instead of MinIO endpoint
+	baseURL := fmt.Sprintf("%s://%s:%s/",
+		serverCfg.Scheme,
+		serverCfg.IP,
+		serverCfg.Port)
+
 	return &MinioStorageProvider{
-		Client: client,
-		Bucket: cfg.Bucket,
+		Client:  client,
+		Bucket:  cfg.Bucket,
+		baseURL: baseURL,
 	}, nil
 }
 
@@ -92,9 +100,10 @@ func (m *MinioStorageProvider) Upload(ctx context.Context, objectName string, re
 }
 
 func (m *MinioStorageProvider) GetURL(ctx context.Context, objectName string) (string, error) {
-	// Return the public URL for the object
-	endpoint := m.Client.EndpointURL()
-	return fmt.Sprintf("%s/%s/%s", endpoint.String(), m.Bucket, objectName), nil
+	// Return the URL using baseURL (constructed from SERVER_IP) instead of MinIO endpoint
+	// This allows the server to proxy/serve MinIO assets through its own address
+	cleanPath := strings.ReplaceAll(objectName, "\\", "/")
+	return m.baseURL + "uploads/" + cleanPath, nil
 }
 
 func (m *MinioStorageProvider) HealthCheck(ctx context.Context) error {

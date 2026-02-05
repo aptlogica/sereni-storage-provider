@@ -14,6 +14,7 @@ type Config struct {
 type ServerConfig struct {
 	Port   string
 	Host   string
+	IP     string // IP/Domain for constructing asset URLs
 	Scheme string
 	// MaxUploadSizeBytes caps max upload size accepted by server in bytes
 	MaxUploadSizeBytes int64
@@ -69,12 +70,14 @@ func LoadConfig() (Config, error) {
 	viper.SetDefault("STORAGE_DEV_PATH", "./uploads")
 	viper.SetDefault("SERVER_PORT", "8080")
 	viper.SetDefault("SERVER_HOST", "localhost")
+	viper.SetDefault("SERVER_IP", "localhost")
 	viper.SetDefault("SERVER_SCHEME", "http")
 	viper.SetDefault("MAX_UPLOAD_SIZE_BYTES", 10<<20) // 10 MiB
 	viper.SetDefault("ALLOWED_ORIGINS", "*")
 
 	cfg.Server.Port = viper.GetString("SERVER_PORT")
 	cfg.Server.Host = viper.GetString("SERVER_HOST")
+	cfg.Server.IP = viper.GetString("SERVER_IP")
 	cfg.Server.Scheme = viper.GetString("SERVER_SCHEME")
 	cfg.Server.MaxUploadSizeBytes = viper.GetInt64("MAX_UPLOAD_SIZE_BYTES")
 	// Parse allowed origins (comma-separated)

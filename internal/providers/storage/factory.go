@@ -17,7 +17,7 @@ func NewStorage(storageCfg *config.StorageConfig, serverCfg *config.ServerConfig
 		return local.NewLocalStorageProvider(&storageCfg.Dev, serverCfg)
 
 	case "minio":
-		return minio.NewMinioStorageProvider(&storageCfg.Minio)
+		return minio.NewMinioStorageProvider(&storageCfg.Minio, serverCfg)
 
 	case "aws", "s3":
 		return s3.NewS3StorageProvider(&storageCfg.AWS)

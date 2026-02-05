@@ -24,6 +24,7 @@ func TestNewStorage(t *testing.T) {
 			serverCfg: config.ServerConfig{
 				Scheme: "http",
 				Host:   "localhost",
+				IP:     "localhost",
 				Port:   "8080",
 			},
 			expectError: false,
@@ -39,6 +40,7 @@ func TestNewStorage(t *testing.T) {
 			serverCfg: config.ServerConfig{
 				Scheme: "http",
 				Host:   "localhost",
+				IP:     "localhost",
 				Port:   "8080",
 			},
 			expectError: false,
@@ -58,6 +60,7 @@ func TestNewStorage(t *testing.T) {
 			serverCfg: config.ServerConfig{
 				Scheme: "http",
 				Host:   "localhost",
+				IP:     "localhost",
 				Port:   "8080",
 			},
 			expectError: true, // Expect error due to no minio server
@@ -84,6 +87,7 @@ func TestNewStorage(t *testing.T) {
 			serverCfg: config.ServerConfig{
 				Scheme: "http",
 				Host:   "localhost",
+				IP:     "localhost",
 				Port:   "8080",
 			},
 			expectError: false, // S3 provider creation doesn't validate connection
@@ -102,6 +106,7 @@ func TestNewStorage(t *testing.T) {
 			serverCfg: config.ServerConfig{
 				Scheme: "http",
 				Host:   "localhost",
+				IP:     "localhost",
 				Port:   "8080",
 			},
 			expectError: false, // S3 provider creation doesn't validate connection
