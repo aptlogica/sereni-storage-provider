@@ -35,10 +35,11 @@ func NewLocalStorageProvider(cfg *config.StorageDevConfig, serverCfg *config.Ser
 	}
 
 	// Construct base URL for serving files using SERVER_IP
-	baseURL := fmt.Sprintf("%s://%s:%s/",
+	baseURL := fmt.Sprintf("%s://%s:%s/%s/",
 		serverCfg.Scheme,
 		serverCfg.IP,
-		serverCfg.Port)
+		serverCfg.Port,
+		cfg.Path)
 
 	return &LocalStorageProvider{
 		path:    absPath,
@@ -143,7 +144,7 @@ func (l *LocalStorageProvider) GetURL(ctx context.Context, objectName string) (s
 	// The static route is configured to serve /uploads from the storage path
 	// So we need to prepend /uploads to the object name
 	cleanPath := strings.ReplaceAll(objectName, "\\", "/")
-	return l.baseURL + "uploads/" + cleanPath, nil
+	return l.baseURL + cleanPath, nil
 }
 
 func (l *LocalStorageProvider) HealthCheck(ctx context.Context) error {
