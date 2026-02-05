@@ -44,11 +44,16 @@ func NewMinioStorageProvider(cfg *config.StorageMinioConfig, serverCfg *config.S
 		return nil, fmt.Errorf("minio bucket %s does not exist", cfg.Bucket)
 	}
 
+	minioPort := "9000" // default
+	if parts := strings.Split(cfg.Endpoint, ":"); len(parts) > 1 {
+		minioPort = parts[len(parts)-1]
+	}
 	// Construct base URL for serving files using SERVER_IP instead of MinIO endpoint
-	baseURL := fmt.Sprintf("%s://%s:%s/",
+	baseURL := fmt.Sprintf("%s://%s:%s/%s/",
 		serverCfg.Scheme,
 		serverCfg.IP,
-		serverCfg.Port)
+		minioPort,
+		cfg.Bucket)
 
 	return &MinioStorageProvider{
 		Client:  client,
@@ -103,7 +108,7 @@ func (m *MinioStorageProvider) GetURL(ctx context.Context, objectName string) (s
 	// Return the URL using baseURL (constructed from SERVER_IP) instead of MinIO endpoint
 	// This allows the server to proxy/serve MinIO assets through its own address
 	cleanPath := strings.ReplaceAll(objectName, "\\", "/")
-	return m.baseURL + "uploads/" + cleanPath, nil
+	return m.baseURL + cleanPath, nil
 }
 
 func (m *MinioStorageProvider) HealthCheck(ctx context.Context) error {
