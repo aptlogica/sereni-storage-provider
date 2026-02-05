@@ -34,10 +34,10 @@ func NewLocalStorageProvider(cfg *config.StorageDevConfig, serverCfg *config.Ser
 		return nil, err
 	}
 
-	// Construct base URL for serving files
+	// Construct base URL for serving files using SERVER_IP
 	baseURL := fmt.Sprintf("%s://%s:%s/",
 		serverCfg.Scheme,
-		serverCfg.Host,
+		serverCfg.IP,
 		serverCfg.Port)
 
 	return &LocalStorageProvider{

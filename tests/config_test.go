@@ -20,6 +20,7 @@ func TestLoadConfig(t *testing.T) {
 				Server: configPkg.ServerConfig{
 					Port:               "8080",
 					Host:               "localhost",
+					IP:                 "localhost",
 					Scheme:             "http",
 					MaxUploadSizeBytes: 10 << 20, // 10 MiB
 				},
@@ -36,6 +37,7 @@ func TestLoadConfig(t *testing.T) {
 			envVars: map[string]string{
 				"SERVER_PORT":           "9090",
 				"SERVER_HOST":           "example.com",
+				"SERVER_IP":             "api.example.com",
 				"SERVER_SCHEME":         "https",
 				"MAX_UPLOAD_SIZE_BYTES": "20",
 				"STORAGE_DRIVER":        "minio",
@@ -55,6 +57,7 @@ func TestLoadConfig(t *testing.T) {
 				Server: configPkg.ServerConfig{
 					Port:               "9090",
 					Host:               "example.com",
+					IP:                 "api.example.com",
 					Scheme:             "https",
 					MaxUploadSizeBytes: 20,
 				},
@@ -91,6 +94,7 @@ AWS_REGION=us-west-2
 				Server: configPkg.ServerConfig{
 					Port:               "7070",
 					Host:               "localhost",
+					IP:                 "localhost",
 					Scheme:             "http",
 					MaxUploadSizeBytes: 10 << 20,
 				},
@@ -145,6 +149,9 @@ AWS_REGION=us-west-2
 			}
 			if cfg.Server.Host != tt.expected.Server.Host {
 				t.Errorf("Server.Host: got %v, want %v", cfg.Server.Host, tt.expected.Server.Host)
+			}
+			if cfg.Server.IP != tt.expected.Server.IP {
+				t.Errorf("Server.IP: got %v, want %v", cfg.Server.IP, tt.expected.Server.IP)
 			}
 			if cfg.Server.Scheme != tt.expected.Server.Scheme {
 				t.Errorf("Server.Scheme: got %v, want %v", cfg.Server.Scheme, tt.expected.Server.Scheme)
