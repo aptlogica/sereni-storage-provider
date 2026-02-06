@@ -19,6 +19,11 @@ type StorageHandler struct {
 	allowedTypes  map[string]struct{}
 }
 
+const (
+	pathParamRequiredMsg = "Path parameter is required"
+	invalidPathMsg       = "invalid path"
+)
+
 func NewStorageHandler(service *services.StorageService, maxUploadSize int64, allowed []string) *StorageHandler {
 	a := make(map[string]struct{}, len(allowed))
 	for _, t := range allowed {
@@ -152,7 +157,7 @@ func (h *StorageHandler) Download(c *gin.Context) {
 	// e.g., /files?path=uploads/image.png
 	objectPath := c.Query("path")
 	if objectPath == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Path parameter is required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": pathParamRequiredMsg})
 		return
 	}
 
@@ -163,7 +168,7 @@ func (h *StorageHandler) Download(c *gin.Context) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "file not found"})
 			return
 		case app_errors.ErrInvalidPath:
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid path"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": invalidPathMsg})
 			return
 		default:
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to access file"})
@@ -202,7 +207,7 @@ func (h *StorageHandler) Download(c *gin.Context) {
 func (h *StorageHandler) Delete(c *gin.Context) {
 	objectPath := c.Query("path")
 	if objectPath == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Path parameter is required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": pathParamRequiredMsg})
 		return
 	}
 
@@ -213,7 +218,7 @@ func (h *StorageHandler) Delete(c *gin.Context) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "file not found"})
 			return
 		case app_errors.ErrInvalidPath:
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid path"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": invalidPathMsg})
 			return
 		default:
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete file"})
@@ -238,7 +243,7 @@ func (h *StorageHandler) Delete(c *gin.Context) {
 func (h *StorageHandler) GetConsumption(c *gin.Context) {
 	path := c.Query("path")
 	if path == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Path parameter is required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": pathParamRequiredMsg})
 		return
 	}
 
@@ -249,7 +254,7 @@ func (h *StorageHandler) GetConsumption(c *gin.Context) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "file or directory not found"})
 			return
 		case app_errors.ErrInvalidPath:
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid path"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": invalidPathMsg})
 			return
 		default:
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get size information"})
