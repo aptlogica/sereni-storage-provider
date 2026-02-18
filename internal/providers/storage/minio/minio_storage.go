@@ -44,16 +44,33 @@ func NewMinioStorageProvider(cfg *config.StorageMinioConfig, serverCfg *config.S
 		return nil, fmt.Errorf("minio bucket %s does not exist", cfg.Bucket)
 	}
 
-	minioPort := "9000" // default
-	if parts := strings.Split(cfg.Endpoint, ":"); len(parts) > 1 {
-		minioPort = parts[len(parts)-1]
+	// Prefer using the MinIO client's endpoint URL for constructing asset base URL
+	// so returned URLs point directly to the storage service. Fall back to
+	// SERVER_IP + port if the client's endpoint is not available.
+	endpointURL := client.EndpointURL()
+	var baseURL string
+	if endpointURL != nil && endpointURL.Host != "" {
+		// endpointURL may include the port already (host:port)
+		scheme := endpointURL.Scheme
+		if scheme == "" {
+			if cfg.UseSSL {
+				scheme = "https"
+			} else {
+				scheme = "http"
+			}
+		}
+		baseURL = fmt.Sprintf("%s://%s/%s/", scheme, endpointURL.Host, cfg.Bucket)
+	} else {
+		minioPort := "9000" // default
+		if parts := strings.Split(cfg.Endpoint, ":"); len(parts) > 1 {
+			minioPort = parts[len(parts)-1]
+		}
+		baseURL = fmt.Sprintf("%s://%s:%s/%s/",
+			serverCfg.Scheme,
+			serverCfg.IP,
+			minioPort,
+			cfg.Bucket)
 	}
-	// Construct base URL for serving files using SERVER_IP instead of MinIO endpoint
-	baseURL := fmt.Sprintf("%s://%s:%s/%s/",
-		serverCfg.Scheme,
-		serverCfg.IP,
-		minioPort,
-		cfg.Bucket)
 
 	return &MinioStorageProvider{
 		Client:  client,
