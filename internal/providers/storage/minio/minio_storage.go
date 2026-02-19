@@ -47,7 +47,8 @@ func NewMinioStorageProvider(cfg *config.StorageMinioConfig, serverCfg *config.S
 	// Prefer using the MinIO client's endpoint URL for constructing asset base URL
 	// so returned URLs point directly to the storage service. Fall back to
 	// SERVER_IP + port if the client's endpoint is not available.
-	var baseURL = fmt.Sprintf("%s://%s/%s/", serverCfg.Scheme, serverCfg.IP, cfg.Bucket)
+	minioPort := client.EndpointURL().Port()
+	var baseURL = fmt.Sprintf("%s://%s:%s/%s/", serverCfg.Scheme, serverCfg.IP, minioPort, cfg.Bucket)
 
 	return &MinioStorageProvider{
 		Client:  client,
