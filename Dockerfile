@@ -19,9 +19,7 @@ RUN go mod download
 COPY . .
 
 # Generate swagger docs and build the application
-RUN swag init -g cmd/server/main.go -o docs && \
-    go mod tidy && \
-    CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd/server
+RUN swag init -g cmd/server/main.go -o docs && go mod tidy && CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd/server
 
 # Final stage
 FROM alpine:3.20
