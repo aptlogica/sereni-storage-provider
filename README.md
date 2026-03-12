@@ -1524,5 +1524,3 @@ This project is licensed under the **Apache License 2.0**.
 Full license text: See [LICENSE](LICENSE) file in repository.
 
 ---
-
-**Made with ❤️ by the Sereni Team**
