@@ -144,7 +144,7 @@ Centralize file storage for multiple microservices. All services use the same st
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/yourusername/sereni-storage-provider.git
+git clone https://github.com/aptlogica/sereni-storage-provider.git
 cd sereni-storage-provider
 
 # 2. Create environment file
@@ -173,7 +173,7 @@ Includes MinIO for S3-compatible storage. Perfect for development and production
 
 ```bash
 # Step 1: Clone the repository
-git clone https://github.com/yourusername/sereni-storage-provider.git
+git clone https://github.com/aptlogica/sereni-storage-provider.git
 cd sereni-storage-provider
 
 # Step 2: Create environment configuration
@@ -262,7 +262,7 @@ For development, testing, or modifications.
 go version
 
 # Step 2: Clone repository
-git clone https://github.com/yourusername/sereni-storage-provider.git
+git clone https://github.com/aptlogica/sereni-storage-provider.git
 cd sereni-storage-provider
 
 # Step 3: Install dependencies
@@ -1321,7 +1321,7 @@ public class FileStorageController {
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/yourusername/sereni-storage-provider.git
+git clone https://github.com/aptlogica/sereni-storage-provider.git
 cd sereni-storage-provider
 
 # 2. Install Go 1.24.4+ (if not installed)
