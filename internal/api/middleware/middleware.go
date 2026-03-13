@@ -66,7 +66,7 @@ func GetLimiter(ip string) *limiter {
 	defer ClientsMu.Unlock()
 	l, ok := Clients[ip]
 	if !ok {
-		l = &limiter{tokens: 10, Last: time.Now()}
+		l = &limiter{tokens: 20, Last: time.Now()}
 		Clients[ip] = l
 	}
 	return l
