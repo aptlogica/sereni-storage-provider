@@ -2,7 +2,34 @@
 /bin/
 *.exe
 *.test
-main
+# Environment Variables
+.env
+.env.local
+.env.*.local
+# OS specific
+.DS_Store
+Thumbs.db
+# IDEs
+.vscode/
+.idea/
+# Logs
+*.log
+# Coverage
+coverage.out
+coverage/
+*.lcov
+# Build
+bin/
+dist/
+build/
+out/
+*.exe
+*.test
+*.tgz
+# Node
+node_modules/
+# Go
+vendor/
 
 
 # Environment Variables
