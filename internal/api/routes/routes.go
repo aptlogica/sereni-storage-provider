@@ -5,13 +5,13 @@
 package routes
 
 import (
-	"sereni-storage-provider/internal/api/handlers"
+	"github.com/aptlogica/sereni-storage-provider/internal/api/handlers"
 
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
-	_ "sereni-storage-provider/docs"
+	_ "github.com/aptlogica/sereni-storage-provider/docs"
 )
 
 func SetupRoutes(router *gin.Engine, storageHandler *handlers.StorageHandler, healthHandler *handlers.HealthHandler, storagePath string) {

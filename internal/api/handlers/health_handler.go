@@ -6,7 +6,7 @@ package handlers
 
 import (
 	"net/http"
-	"sereni-storage-provider/internal/services"
+	"github.com/aptlogica/sereni-storage-provider/internal/services"
 
 	"github.com/gin-gonic/gin"
 )

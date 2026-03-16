@@ -11,8 +11,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	app_errors "sereni-storage-provider/internal/app-errors"
-	"sereni-storage-provider/internal/services"
+	app_errors "github.com/aptlogica/sereni-storage-provider/internal/app-errors"
+	"github.com/aptlogica/sereni-storage-provider/internal/services"
 
 	"github.com/gin-gonic/gin"
 )

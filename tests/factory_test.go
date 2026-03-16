@@ -5,8 +5,8 @@
 package tests
 
 import (
-	"sereni-storage-provider/internal/config"
-	"sereni-storage-provider/internal/providers/storage"
+	"github.com/aptlogica/sereni-storage-provider/internal/config"
+	"github.com/aptlogica/sereni-storage-provider/internal/providers/storage"
 	"testing"
 )
 

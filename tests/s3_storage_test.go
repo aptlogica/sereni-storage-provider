@@ -8,8 +8,8 @@ import (
 	"context"
 	"errors"
 	"io"
-	"sereni-storage-provider/internal/config"
-	s3Pkg "sereni-storage-provider/internal/providers/storage/s3"
+	"github.com/aptlogica/sereni-storage-provider/internal/config"
+	s3Pkg "github.com/aptlogica/sereni-storage-provider/internal/providers/storage/s3"
 	"strings"
 	"testing"
 

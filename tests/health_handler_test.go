@@ -9,8 +9,8 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"sereni-storage-provider/internal/api/handlers"
-	"sereni-storage-provider/internal/services"
+	"github.com/aptlogica/sereni-storage-provider/internal/api/handlers"
+	"github.com/aptlogica/sereni-storage-provider/internal/services"
 	"strings"
 	"testing"
 

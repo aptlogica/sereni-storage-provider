@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	middlewarePkg "sereni-storage-provider/internal/api/middleware"
+	middlewarePkg "github.com/aptlogica/sereni-storage-provider/internal/api/middleware"
 
 	"github.com/gin-gonic/gin"
 )

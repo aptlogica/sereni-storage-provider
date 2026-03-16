@@ -9,9 +9,9 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	app_errors "sereni-storage-provider/internal/app-errors"
-	"sereni-storage-provider/internal/config"
-	localPkg "sereni-storage-provider/internal/providers/storage/local"
+	app_errors "github.com/aptlogica/sereni-storage-provider/internal/app-errors"
+	"github.com/aptlogica/sereni-storage-provider/internal/config"
+	localPkg "github.com/aptlogica/sereni-storage-provider/internal/providers/storage/local"
 	"strings"
 	"testing"
 )

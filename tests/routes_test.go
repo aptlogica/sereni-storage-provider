@@ -11,9 +11,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"sereni-storage-provider/internal/api/handlers"
-	"sereni-storage-provider/internal/api/routes"
-	"sereni-storage-provider/internal/services"
+	"github.com/aptlogica/sereni-storage-provider/internal/api/handlers"
+	"github.com/aptlogica/sereni-storage-provider/internal/api/routes"
+	"github.com/aptlogica/sereni-storage-provider/internal/services"
 
 	"github.com/gin-gonic/gin"
 )

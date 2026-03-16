@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	app_config "sereni-storage-provider/internal/config"
-	"sereni-storage-provider/internal/providers/storage/interfaces"
+	app_config "github.com/aptlogica/sereni-storage-provider/internal/config"
+	"github.com/aptlogica/sereni-storage-provider/internal/providers/storage/interfaces"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	aws_config "github.com/aws/aws-sdk-go-v2/config"
