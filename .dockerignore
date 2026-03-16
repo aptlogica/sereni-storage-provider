@@ -1,29 +1,55 @@
-# Exclude version control
-.git
-.gitignore
+# Ignore Go build output
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
 
+# Ignore vendor directory
+vendor/
 # Exclude environment files
 .env
 
-# Exclude test files
-tests/
+# Ignore dependency directories
+Godeps/
 
-# Exclude documentation and reports
-README.md
-report.md
-Jenkinsfile
-sonar-project.properties
+# Ignore IDE/editor files
+.idea/
+.vscode/
+*.swp
+*.swo
 
-# Exclude logs
+# Ignore environment files
+.env
+*.env
+
+# Ignore coverage and test output
+coverage.out
+*.coverprofile
+
+# Ignore logs
 *.log
 
-# Exclude uploads directory from build context (it's mounted as volume)
-uploads/
+# Ignore Docker files
+Dockerfile*
+docker-compose*
 
-# Exclude IDE files
-.vscode/
-.idea/
+# Ignore node modules (if any)
+node_modules/
 
-# Exclude temporary files
+# Ignore documentation build output
+docs/_build/
+
+# Ignore SonarQube files
+.sonar/
+
+# Ignore temporary files
 *.tmp
-*.swp
+*.bak
+*~
+
+# Ignore report files
+report.md

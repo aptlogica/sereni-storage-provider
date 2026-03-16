@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Aptlogica Technologies Private Limited
+// SPDX-License-Identifier: MIT
+// Websites: https://www.aptlogica.com | https://www.serenibase.com
+// Support: support@aptlogica.com | support@serenibase.com
 package local
 
 import (
@@ -34,11 +38,12 @@ func NewLocalStorageProvider(cfg *config.StorageDevConfig, serverCfg *config.Ser
 		return nil, err
 	}
 
-	// Construct base URL for serving files
-	baseURL := fmt.Sprintf("%s://%s:%s/",
+	// Construct base URL for serving files using SERVER_IP
+	baseURL := fmt.Sprintf("%s://%s:%s/%s/",
 		serverCfg.Scheme,
-		serverCfg.Host,
-		serverCfg.Port)
+		serverCfg.IP,
+		serverCfg.Port,
+		cfg.Path)
 
 	return &LocalStorageProvider{
 		path:    absPath,
@@ -143,7 +148,7 @@ func (l *LocalStorageProvider) GetURL(ctx context.Context, objectName string) (s
 	// The static route is configured to serve /uploads from the storage path
 	// So we need to prepend /uploads to the object name
 	cleanPath := strings.ReplaceAll(objectName, "\\", "/")
-	return l.baseURL + "uploads/" + cleanPath, nil
+	return l.baseURL + cleanPath, nil
 }
 
 func (l *LocalStorageProvider) HealthCheck(ctx context.Context) error {

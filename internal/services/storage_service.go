@@ -1,8 +1,13 @@
+// Copyright (c) 2026 Aptlogica Technologies Private Limited
+// SPDX-License-Identifier: MIT
+// Websites: https://www.aptlogica.com | https://www.serenibase.com
+// Support: support@aptlogica.com | support@serenibase.com
 package services
 
 import (
 	"context"
 	"io"
+	"mime"
 	"mime/multipart"
 	"path/filepath"
 	"regexp"
@@ -58,6 +63,18 @@ func (s *StorageService) UploadFile(ctx context.Context, file *multipart.FileHea
 	defer src.Close()
 
 	contentType := file.Header.Get("Content-Type")
+	// If the client didn't provide a content-type or provided a generic one,
+	// try to infer a better value from the file extension. This prevents
+	// MinIO/S3 from storing SVGs with `application/octet-stream` which
+	// browsers won't render.
+	if contentType == "" || contentType == "application/octet-stream" {
+		ext := strings.ToLower(filepath.Ext(file.Filename))
+		if ext == ".svg" {
+			contentType = "image/svg+xml"
+		} else if t := mime.TypeByExtension(ext); t != "" {
+			contentType = t
+		}
+	}
 	cleanPath := NormalizePath(path)
 	if cleanPath == "" {
 		// Use filename only

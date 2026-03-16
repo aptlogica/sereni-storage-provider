@@ -1,75 +1,142 @@
-# React + TypeScript + Vite
+# sereni-storage-provider - Cloud-Native Object Storage Service
 
-[![Quality Gate Status](https://sonar.aptlogica.com/api/project_badges/measure?project=aptlogica_sereni-storage-provider_268fdb46-e26c-4658-8e95-7ad63d65f666&metric=alert_status&token=sqb_6de6206ad8030012928d5d3ef806ce13462e6d4b)](https://sonar.aptlogica.com/dashboard?id=aptlogica_sereni-storage-provider_268fdb46-e26c-4658-8e95-7ad63d65f666)
+> Enterprise-grade object storage service and open source storage service with S3-compatible APIs. A comprehensive file storage API and cloud storage backend providing advanced access control, multi-tenant architecture, and seamless integration with modern cloud infrastructure.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+[![Version](https://img.shields.io/badge/Version-1.0.0-blue.svg)](LICENSE)
+[![Go Version](https://img.shields.io/badge/Go-1.23+-00ADD8?style=flat-square&logo=go)](https://golang.org)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Quality Gate Status](https://sonar.aptlogica.com/api/project_badges/measure?project=aptlogica_sereni-storage-provider_7890abcd&metric=alert_status&token=sqb_152d71a0f9a3621514372a3e4c87460e3059bbc2)](https://sonar.aptlogica.com/dashboard?id=aptlogica_sereni-storage-provider_7890abcd)
 
-Currently, two official plugins are available:
+## Overview
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+**sereni-storage-provider** is an enterprise-grade storage backend service and developer storage API engineered for scalability, security, and performance. This comprehensive file storage server and backend file management system features S3-compatible APIs, advanced access control mechanisms, multi-tenant architecture, and seamless integration with modern cloud-native infrastructure. Complete storage integration service for file upload applications.
 
-## React Compiler
+## Key Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **S3-Compatible APIs**: Full compatibility with Amazon S3 client libraries and tools
+- **Advanced Access Control**: Role-based permissions with fine-grained access policies
+- **Multi-Tenant Architecture**: Isolated storage contexts for different organizations
+- **High Performance**: Optimized for large file uploads with resumable transfers
+- **Data Security**: Encryption at rest and in transit with comprehensive audit logging
+- **Storage Microservice**: Complete object storage API with file upload service capabilities
+- **Cloud-Native Design**: Kubernetes deployment with auto-scaling capabilities
 
-## Expanding the ESLint configuration
+## Architecture
+- Go 1.23+, idiomatic design
+- Modular, testable codebase
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Installation
+```sh
+go get github.com/aptlogica/sereni-storage-provider
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Configuration
+See `.env.example` for environment variables and configuration options.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Quick Start
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```go
+package main
+
+import (
+    "context"
+    "log"
+    "os"
+    
+    "github.com/aptlogica/sereni-storage-provider/pkg/client"
+    "github.com/aptlogica/sereni-storage-provider/pkg/config"
+)
+
+func main() {
+    // Initialize configuration
+    cfg := config.New()
+    cfg.StorageBackend = "s3"
+    cfg.S3Endpoint = "https://s3.amazonaws.com"
+    cfg.S3Region = "us-east-1"
+    cfg.S3AccessKey = "your-access-key"
+    cfg.S3SecretKey = "your-secret-key"
+    
+    // Create storage client
+    client, err := client.New(cfg)
+    if err != nil {
+        log.Fatal("Failed to create client:", err)
+    }
+    defer client.Close()
+    
+    // Upload a file
+    file, err := os.Open("example.txt")
+    if err != nil {
+        log.Fatal("Failed to open file:", err)
+    }
+    defer file.Close()
+    
+    ctx := context.Background()
+    result, err := client.Upload(ctx, "my-bucket", "example.txt", file)
+    if err != nil {
+        log.Fatal("Failed to upload file:", err)
+    }
+    
+    log.Printf("File uploaded: %s", result.URL)
+}
 ```
+
+## Development
+
+### Local Setup
+```bash
+# Clone the repository
+git clone https://github.com/aptlogica/sereni-storage-provider.git
+cd sereni-storage-provider
+
+# Install dependencies
+go mod download
+
+# Set up environment
+cp .env.example .env
+# Configure your storage backend in .env
+
+# Start MinIO for local development (optional)
+docker run -d \
+  -p 9000:9000 -p 9001:9001 \
+  --name minio \
+  minio/minio server /data --console-address ":9001"
+
+# Start development server
+go run ./cmd/server
+```
+
+### Environment Configuration
+```bash
+STORAGE_BACKEND=s3
+S3_ENDPOINT=http://localhost:9000
+S3_REGION=us-east-1
+S3_ACCESS_KEY=minioadmin
+S3_SECRET_KEY=minioadmin
+MAX_FILE_SIZE=100MB
+PORT=8080
+LOG_LEVEL=debug
+```
+
+### Storage Backends
+```bash
+# Local filesystem
+STORAGE_BACKEND=local
+LOCAL_STORAGE_PATH=./uploads
+
+# Amazon S3
+STORAGE_BACKEND=s3
+S3_ENDPOINT=https://s3.amazonaws.com
+
+# MinIO (S3-compatible)
+STORAGE_BACKEND=s3
+S3_ENDPOINT=http://localhost:9000
+```
+
+## Testing
+- Run `go test ./...` to execute unit tests
+
+## Security
+See [SECURITY.md](SECURITY.md) for reporting vulnerabilities.
+
+## License
+MIT License. Copyright (c) 2026 Aptlogica Technologies.

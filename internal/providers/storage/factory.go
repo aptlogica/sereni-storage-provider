@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Aptlogica Technologies Private Limited
+// SPDX-License-Identifier: MIT
+// Websites: https://www.aptlogica.com | https://www.serenibase.com
+// Support: support@aptlogica.com | support@serenibase.com
 package storage
 
 import (
@@ -17,7 +21,7 @@ func NewStorage(storageCfg *config.StorageConfig, serverCfg *config.ServerConfig
 		return local.NewLocalStorageProvider(&storageCfg.Dev, serverCfg)
 
 	case "minio":
-		return minio.NewMinioStorageProvider(&storageCfg.Minio)
+		return minio.NewMinioStorageProvider(&storageCfg.Minio, serverCfg)
 
 	case "aws", "s3":
 		return s3.NewS3StorageProvider(&storageCfg.AWS)

@@ -1,4 +1,4 @@
-module sereni-storage-provider
+module github.com/aptlogica/sereni-storage-provider
 
 go 1.24.4
 

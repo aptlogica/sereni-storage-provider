@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Aptlogica Technologies Private Limited
+// SPDX-License-Identifier: MIT
+// Websites: https://www.aptlogica.com | https://www.serenibase.com
+// Support: support@aptlogica.com | support@serenibase.com
 package tests
 
 import (
@@ -100,7 +104,13 @@ func TestNewMinioStorageProvider(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			provider, err := minioPkg.NewMinioStorageProvider(&tt.cfg)
+			serverCfg := &config.ServerConfig{
+				Port:   "8083",
+				Host:   "localhost",
+				IP:     "localhost",
+				Scheme: "http",
+			}
+			provider, err := minioPkg.NewMinioStorageProvider(&tt.cfg, serverCfg)
 
 			if tt.expectError {
 				if err == nil {
