@@ -15,13 +15,13 @@ package main
 import (
 	"fmt"
 
-	"sereni-storage-provider/internal/api/handlers"
-	"sereni-storage-provider/internal/api/routes"
-	"sereni-storage-provider/internal/config"
-	"sereni-storage-provider/internal/providers/storage"
-	"sereni-storage-provider/internal/services"
+	"github.com/aptlogica/sereni-storage-provider/internal/api/handlers"
+	"github.com/aptlogica/sereni-storage-provider/internal/api/routes"
+	"github.com/aptlogica/sereni-storage-provider/internal/config"
+	"github.com/aptlogica/sereni-storage-provider/internal/providers/storage"
+	"github.com/aptlogica/sereni-storage-provider/internal/services"
 
-	"sereni-storage-provider/internal/api/middleware"
+	"github.com/aptlogica/sereni-storage-provider/internal/api/middleware"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"

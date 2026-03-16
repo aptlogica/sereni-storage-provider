@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"sereni-storage-provider/internal/config"
-	"sereni-storage-provider/internal/providers/storage/interfaces"
+	"github.com/aptlogica/sereni-storage-provider/internal/config"
+	"github.com/aptlogica/sereni-storage-provider/internal/providers/storage/interfaces"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"

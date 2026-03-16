@@ -7,7 +7,7 @@ package tests
 import (
 	"os"
 	"path/filepath"
-	configPkg "sereni-storage-provider/internal/config"
+	configPkg "github.com/aptlogica/sereni-storage-provider/internal/config"
 	"testing"
 )
 

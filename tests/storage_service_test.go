@@ -10,7 +10,7 @@ import (
 	"errors"
 	"io"
 	"mime/multipart"
-	servicesPkg "sereni-storage-provider/internal/services"
+	servicesPkg "github.com/aptlogica/sereni-storage-provider/internal/services"
 	"strings"
 	"testing"
 )

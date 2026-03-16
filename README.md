@@ -9,7 +9,7 @@
 
 ## Overview
 
-**sereni-storage-provider** is an enterprise-grade storage backend service and developer storage API engineered for scalability, security, and performance. This comprehensive file storage server and backend file management system features S3-compatible APIs, advanced access control mechanisms, multi-tenant architecture, and seamless integration with modern cloud-native infrastructure. Complete storage integration service for file upload applications.
+**sereni-storage-provider** is an enterprise-grade storage backend service and developer storage API engineered for scalability, security, and performance. This comprehensive file storage server and backend file management system features S3-compatible APIs, advanced access control mechanisms, multi-tenant architecture, and seamless integration with modern cloud-native infrastructure, providing backend storage service capabilities, open source file storage for teams, and acting as a storage provider backend for cloud-native apps. Complete storage integration service for file upload applications.
 
 ## Key Features
 

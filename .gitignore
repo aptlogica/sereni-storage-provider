@@ -15,7 +15,6 @@ Thumbs.db
 # Logs
 *.log
 # Coverage
-coverage.out
 coverage/
 *.lcov
 # Build

@@ -8,11 +8,11 @@ import (
 	"fmt"
 	"strings"
 
-	"sereni-storage-provider/internal/config"
-	"sereni-storage-provider/internal/providers/storage/interfaces"
-	"sereni-storage-provider/internal/providers/storage/local"
-	"sereni-storage-provider/internal/providers/storage/minio"
-	"sereni-storage-provider/internal/providers/storage/s3"
+	"github.com/aptlogica/sereni-storage-provider/internal/config"
+	"github.com/aptlogica/sereni-storage-provider/internal/providers/storage/interfaces"
+	"github.com/aptlogica/sereni-storage-provider/internal/providers/storage/local"
+	"github.com/aptlogica/sereni-storage-provider/internal/providers/storage/minio"
+	"github.com/aptlogica/sereni-storage-provider/internal/providers/storage/s3"
 )
 
 func NewStorage(storageCfg *config.StorageConfig, serverCfg *config.ServerConfig) (interfaces.StorageProvider, error) {

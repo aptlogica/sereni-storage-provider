@@ -13,7 +13,7 @@ import (
 	"regexp"
 	"strings"
 
-	"sereni-storage-provider/internal/providers/storage/interfaces"
+	"github.com/aptlogica/sereni-storage-provider/internal/providers/storage/interfaces"
 )
 
 type StorageService struct {

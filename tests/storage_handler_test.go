@@ -11,9 +11,9 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
-	"sereni-storage-provider/internal/api/handlers"
-	app_errors "sereni-storage-provider/internal/app-errors"
-	"sereni-storage-provider/internal/services"
+	"github.com/aptlogica/sereni-storage-provider/internal/api/handlers"
+	app_errors "github.com/aptlogica/sereni-storage-provider/internal/app-errors"
+	"github.com/aptlogica/sereni-storage-provider/internal/services"
 	"strings"
 	"testing"
 

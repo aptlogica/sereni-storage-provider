@@ -13,10 +13,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	app_errors "sereni-storage-provider/internal/app-errors"
-	"sereni-storage-provider/internal/config"
-	"sereni-storage-provider/internal/providers/storage/interfaces"
-	"sereni-storage-provider/internal/utils/file"
+	app_errors "github.com/aptlogica/sereni-storage-provider/internal/app-errors"
+	"github.com/aptlogica/sereni-storage-provider/internal/config"
+	"github.com/aptlogica/sereni-storage-provider/internal/providers/storage/interfaces"
+	"github.com/aptlogica/sereni-storage-provider/internal/utils/file"
 )
 
 type LocalStorageProvider struct {
