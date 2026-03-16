@@ -10,6 +10,8 @@ bin/
 
 # Ignore vendor directory
 vendor/
+# Exclude environment files
+.env
 
 # Ignore dependency directories
 Godeps/

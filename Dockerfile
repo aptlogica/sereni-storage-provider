@@ -13,7 +13,7 @@ RUN go install github.com/swaggo/swag/cmd/swag@latest
 COPY go.mod go.sum ./
 
 # Download dependencies
-RUN go mod download
+RUN go mod tidy && go mod download
 
 # Copy source code
 COPY . .
@@ -32,17 +32,21 @@ RUN apk --no-cache add ca-certificates
 # Copy binary from builder
 COPY --from=builder /app/main .
 
+# Copy example.env (optional, can be overridden with volume mount)
+COPY --from=builder /app/example.env .
+
 # Copy swagger docs
 COPY --from=builder /app/docs ./docs
 
 # Create uploads directory
 RUN mkdir -p /app/uploads
 
+# Expose port 5050
+EXPOSE 5050
 
-# Environment variables are provided by .env via Docker Compose
-
-# Expose port
-EXPOSE 8083
+# Set environment variable for port
+ENV SERVER_PORT=5050
+ENV SERVER_HOST=0.0.0.0
 
 # Run the application
 CMD ["./main"]
