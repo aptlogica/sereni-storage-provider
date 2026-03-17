@@ -21,7 +21,7 @@ import (
 type MinioStorageProvider struct {
 	Client  interfaces.MinioClient
 	Bucket  string
-	baseURL string // Base URL for constructing asset URLs
+	BaseURL string // Base URL for constructing asset URLs
 }
 
 func NewMinioStorageProvider(cfg *config.StorageMinioConfig, serverCfg *config.ServerConfig) (interfaces.StorageProvider, error) {
@@ -57,7 +57,7 @@ func NewMinioStorageProvider(cfg *config.StorageMinioConfig, serverCfg *config.S
 	return &MinioStorageProvider{
 		Client:  client,
 		Bucket:  cfg.Bucket,
-		baseURL: baseURL,
+		BaseURL: baseURL,
 	}, nil
 }
 
@@ -104,10 +104,10 @@ func (m *MinioStorageProvider) Upload(ctx context.Context, objectName string, re
 }
 
 func (m *MinioStorageProvider) GetURL(ctx context.Context, objectName string) (string, error) {
-	// Return the URL using baseURL (constructed from SERVER_IP) instead of MinIO endpoint
+	// Return the URL using BaseURL (constructed from SERVER_IP) instead of MinIO endpoint
 	// This allows the server to proxy/serve MinIO assets through its own address
 	cleanPath := strings.ReplaceAll(objectName, "\\", "/")
-	return m.baseURL + cleanPath, nil
+	return m.BaseURL + cleanPath, nil
 }
 
 func (m *MinioStorageProvider) HealthCheck(ctx context.Context) error {

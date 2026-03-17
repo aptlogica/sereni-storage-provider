@@ -46,7 +46,9 @@ func SafeJoin(base string, elems ...string) (string, error) {
 	if strings.HasPrefix(rel, "..") {
 		return "", os.ErrPermission
 	}
-	return filepath.Join(base, cleaned), nil
+	// Return with forward slashes for consistent storage/URL paths
+	// Go's file operations on Windows accept forward slashes
+	return filepath.ToSlash(filepath.Join(base, cleaned)), nil
 }
 
 // CalculateDirSize calculates the total size of a directory recursively

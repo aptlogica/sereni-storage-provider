@@ -14,8 +14,6 @@ Thumbs.db
 .idea/
 # Logs
 *.log
-# Coverage
-coverage/
 *.lcov
 # Build
 bin/

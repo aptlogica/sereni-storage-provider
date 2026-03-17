@@ -39,6 +39,10 @@ func NormalizePath(path string) string {
 	// allow leading ../ sequences; Clean will reduce them but we also
 	// ensure path does not start with '..'
 	p = filepath.Clean(p)
+
+	// Convert back to forward slashes (filepath.Clean uses OS separator)
+	p = filepath.ToSlash(p)
+
 	if p == "." {
 		return ""
 	}
@@ -82,7 +86,7 @@ func (s *StorageService) UploadFile(ctx context.Context, file *multipart.FileHea
 	}
 	// If original path looks like a directory (ends with slash), append filename
 	if strings.HasSuffix(path, "/") {
-		cleanPath = filepath.Join(cleanPath, file.Filename)
+		cleanPath = cleanPath + "/" + file.Filename
 	}
 
 	url, err := s.provider.Upload(ctx, NormalizePath(cleanPath), src, file.Size, contentType)
