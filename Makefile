@@ -5,7 +5,19 @@ COVER_DIR=coverage
 COVER_PROFILE=$(COVER_DIR)/coverage.out
 COVER_HTML=$(COVER_DIR)/coverage.html
 
-.PHONY: all build run clean swag tidy test test-coverage coverage coverage-func
+.PHONY: help all build run clean swag tidy test test-coverage coverage coverage-func
+
+help: ## Display this help message
+	@echo "Available targets:"
+	@echo "  make build          - Build the application"
+	@echo "  make run            - Run the application"
+	@echo "  make test           - Run all tests"
+	@echo "  make test-coverage  - Run tests with coverage report"
+	@echo "  make coverage       - Alias for test-coverage"
+	@echo "  make coverage-func  - Show coverage by function"
+	@echo "  make swag           - Generate swagger documentation"
+	@echo "  make tidy           - Tidy go.mod"
+	@echo "  make clean          - Clean build artifacts"
 
 all: build
 
