@@ -9,11 +9,12 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
+	"testing"
+
 	app_errors "github.com/aptlogica/sereni-storage-provider/internal/app-errors"
 	"github.com/aptlogica/sereni-storage-provider/internal/config"
 	localPkg "github.com/aptlogica/sereni-storage-provider/internal/providers/storage/local"
-	"strings"
-	"testing"
 )
 
 func TestNewLocalStorageProvider(t *testing.T) {
@@ -69,7 +70,8 @@ func TestNewLocalStorageProvider(t *testing.T) {
 
 func TestLocalStorageProvider_Upload(t *testing.T) {
 	tempDir := t.TempDir()
-	cfg := config.StorageDevConfig{Path: tempDir}
+	uploadsDir := filepath.Join(tempDir, "uploads")
+	cfg := config.StorageDevConfig{Path: uploadsDir}
 	serverCfg := config.ServerConfig{Scheme: "http", Host: "localhost", Port: "8080"}
 	provider, err := localPkg.NewLocalStorageProvider(&cfg, &serverCfg)
 	if err != nil {
@@ -140,7 +142,7 @@ func TestLocalStorageProvider_Upload(t *testing.T) {
 			}
 
 			// Check file exists
-			fullPath := filepath.Join(tempDir, tt.objectName)
+			fullPath := filepath.Join(uploadsDir, tt.objectName)
 			if _, err := os.Stat(fullPath); os.IsNotExist(err) {
 				t.Errorf("file not created: %v", fullPath)
 			}
@@ -159,7 +161,8 @@ func TestLocalStorageProvider_Upload(t *testing.T) {
 
 func TestLocalStorageProvider_Download(t *testing.T) {
 	tempDir := t.TempDir()
-	cfg := config.StorageDevConfig{Path: tempDir}
+	uploadsDir := filepath.Join(tempDir, "uploads")
+	cfg := config.StorageDevConfig{Path: uploadsDir}
 	serverCfg := config.ServerConfig{Scheme: "http", Host: "localhost", Port: "8080"}
 	provider, err := localPkg.NewLocalStorageProvider(&cfg, &serverCfg)
 	if err != nil {
@@ -222,7 +225,9 @@ func TestLocalStorageProvider_Download(t *testing.T) {
 
 func TestLocalStorageProvider_Delete(t *testing.T) {
 	tempDir := t.TempDir()
-	cfg := config.StorageDevConfig{Path: tempDir}
+	uploadsDir := filepath.Join(tempDir, "uploads")
+	os.MkdirAll(uploadsDir, 0755)
+	cfg := config.StorageDevConfig{Path: uploadsDir}
 	serverCfg := config.ServerConfig{Scheme: "http", Host: "localhost", Port: "8080"}
 	provider, err := localPkg.NewLocalStorageProvider(&cfg, &serverCfg)
 	if err != nil {
@@ -230,13 +235,13 @@ func TestLocalStorageProvider_Delete(t *testing.T) {
 	}
 
 	// Create a test file
-	testFile := filepath.Join(tempDir, "delete.txt")
+	testFile := filepath.Join(uploadsDir, "delete.txt")
 	if err := os.WriteFile(testFile, []byte("content"), 0644); err != nil {
 		t.Fatalf("failed to create test file: %v", err)
 	}
 
 	// Create a test directory
-	testDir := filepath.Join(tempDir, "testdir")
+	testDir := filepath.Join(uploadsDir, "testdir")
 	if err := os.Mkdir(testDir, 0755); err != nil {
 		t.Fatalf("failed to create test dir: %v", err)
 	}
@@ -286,7 +291,8 @@ func TestLocalStorageProvider_Delete(t *testing.T) {
 
 func TestLocalStorageProvider_Exists(t *testing.T) {
 	tempDir := t.TempDir()
-	cfg := config.StorageDevConfig{Path: tempDir}
+	uploadsDir := filepath.Join(tempDir, "uploads")
+	cfg := config.StorageDevConfig{Path: uploadsDir}
 	serverCfg := config.ServerConfig{Scheme: "http", Host: "localhost", Port: "8080"}
 	provider, err := localPkg.NewLocalStorageProvider(&cfg, &serverCfg)
 	if err != nil {
@@ -318,7 +324,8 @@ func TestLocalStorageProvider_Exists(t *testing.T) {
 
 func TestLocalStorageProvider_GetURL(t *testing.T) {
 	tempDir := t.TempDir()
-	cfg := config.StorageDevConfig{Path: tempDir}
+	uploadsDir := filepath.Join(tempDir, "uploads")
+	cfg := config.StorageDevConfig{Path: uploadsDir}
 	serverCfg := config.ServerConfig{Scheme: "http", Host: "localhost", Port: "8080"}
 	provider, err := localPkg.NewLocalStorageProvider(&cfg, &serverCfg)
 	if err != nil {
@@ -346,7 +353,8 @@ func TestLocalStorageProvider_GetURL(t *testing.T) {
 
 func TestLocalStorageProvider_HealthCheck(t *testing.T) {
 	tempDir := t.TempDir()
-	cfg := config.StorageDevConfig{Path: tempDir}
+	uploadsDir := filepath.Join(tempDir, "uploads")
+	cfg := config.StorageDevConfig{Path: uploadsDir}
 	serverCfg := config.ServerConfig{Scheme: "http", Host: "localhost", Port: "8080"}
 	provider, err := localPkg.NewLocalStorageProvider(&cfg, &serverCfg)
 	if err != nil {
@@ -359,7 +367,7 @@ func TestLocalStorageProvider_HealthCheck(t *testing.T) {
 	}
 
 	// Test error case by removing the directory
-	os.RemoveAll(tempDir)
+	os.RemoveAll(uploadsDir)
 	err = provider.HealthCheck(context.Background())
 	if err == nil {
 		t.Fatalf("expected error after removing directory, got nil")
@@ -368,7 +376,8 @@ func TestLocalStorageProvider_HealthCheck(t *testing.T) {
 
 func TestLocalStorageProvider_GetSize(t *testing.T) {
 	tempDir := t.TempDir()
-	cfg := config.StorageDevConfig{Path: tempDir}
+	uploadsDir := filepath.Join(tempDir, "uploads")
+	cfg := config.StorageDevConfig{Path: uploadsDir}
 	serverCfg := config.ServerConfig{Scheme: "http", Host: "localhost", Port: "8080"}
 	provider, err := localPkg.NewLocalStorageProvider(&cfg, &serverCfg)
 	if err != nil {

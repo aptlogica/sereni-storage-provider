@@ -9,11 +9,12 @@ import (
 	"errors"
 	"io"
 	"net/url"
-	"github.com/aptlogica/sereni-storage-provider/internal/config"
-	minioPkg "github.com/aptlogica/sereni-storage-provider/internal/providers/storage/minio"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/aptlogica/sereni-storage-provider/internal/config"
+	minioPkg "github.com/aptlogica/sereni-storage-provider/internal/providers/storage/minio"
 
 	"github.com/minio/minio-go/v7"
 )
@@ -317,8 +318,9 @@ func TestMinioStorageProvider_GetURL(t *testing.T) {
 				endpointURLFunc: tt.endpointURLFunc,
 			}
 			provider := &minioPkg.MinioStorageProvider{
-				Client: mock,
-				Bucket: "test-bucket",
+				Client:  mock,
+				Bucket:  "test-bucket",
+				BaseURL: "https://minio.example.com/test-bucket/",
 			}
 			url, err := provider.GetURL(context.Background(), "test.txt")
 			if err != nil {
@@ -378,8 +380,9 @@ func TestMinioStorageProvider_Upload(t *testing.T) {
 				endpointURLFunc: func() *url.URL { return &url.URL{Scheme: "https", Host: "minio.example.com"} },
 			}
 			provider := &minioPkg.MinioStorageProvider{
-				Client: mock,
-				Bucket: "test-bucket",
+				Client:  mock,
+				Bucket:  "test-bucket",
+				BaseURL: "https://minio.example.com/test-bucket/",
 			}
 			result, err := provider.Upload(context.Background(), "test.txt", strings.NewReader("content"), 7, "text/plain")
 
