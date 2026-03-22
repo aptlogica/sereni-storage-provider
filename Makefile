@@ -1,9 +1,9 @@
 APP_NAME=storage-provider
 CMD_PATH=./cmd/api
 GO=go
-COVER_DIR=coverage
-COVER_PROFILE=$(COVER_DIR)/coverage.out
-COVER_HTML=$(COVER_DIR)/coverage.html
+COVER_PROFILE=coverage.out
+COVER_HTML=coverage.html
+MODULE=github.com/aptlogica/sereni-storage-provider
 
 .PHONY: help all build run clean swag tidy test test-coverage coverage coverage-func
 
@@ -34,8 +34,7 @@ tidy:
 	$(GO) mod tidy
 
 test:
-	mkdir -p $(COVER_DIR)
-	$(GO) test -v -race -coverprofile=$(COVER_PROFILE) -covermode=atomic ./...
+	$(GO) test -v -coverprofile=$(COVER_PROFILE) -covermode=atomic -coverpkg=$(MODULE)/... $(MODULE)/tests/...
 
 test-coverage: test
 	$(GO) tool cover -html=$(COVER_PROFILE) -o $(COVER_HTML)
@@ -48,4 +47,4 @@ coverage-func:
 clean:
 	$(GO) clean
 	rm -f $(APP_NAME) $(APP_NAME).exe
-	rm -rf $(COVER_DIR)
+	rm -f $(COVER_PROFILE) $(COVER_HTML)

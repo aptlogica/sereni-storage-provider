@@ -8,6 +8,12 @@ pipeline {
       }
     }
 
+    stage('Test & Coverage') {
+      steps {
+        sh 'make test-coverage'
+      }
+    }
+
     stage('SonarQube Analysis') {
         when {
         anyOf {
