@@ -1,12 +1,6 @@
 pipeline {
   agent any
 
-  environment {
-    MODULE = 'github.com/aptlogica/sereni-storage-provider'
-    COVER_PROFILE = 'coverage.out'
-    COVER_HTML = 'coverage.html'
-  }
-
   stages {
     stage('Checkout Code') {
       steps {
@@ -16,8 +10,7 @@ pipeline {
 
     stage('Test & Coverage') {
       steps {
-        sh 'go test -v -coverprofile=$COVER_PROFILE -covermode=atomic -coverpkg=$MODULE/... $MODULE/tests/...'
-        sh 'go tool cover -html=$COVER_PROFILE -o $COVER_HTML'
+        sh 'go test -v -race -coverprofile=coverage.out -covermode=atomic -coverpkg=./... ./tests/...'
       }
     }
 

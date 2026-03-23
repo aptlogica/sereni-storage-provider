@@ -3,7 +3,6 @@ CMD_PATH=./cmd/api
 GO=go
 COVER_PROFILE=coverage.out
 COVER_HTML=coverage.html
-MODULE=github.com/aptlogica/sereni-storage-provider
 
 .PHONY: help all build run clean swag tidy test test-coverage coverage coverage-func
 
@@ -34,9 +33,10 @@ tidy:
 	$(GO) mod tidy
 
 test:
-	$(GO) test -v -coverprofile=$(COVER_PROFILE) -covermode=atomic -coverpkg=$(MODULE)/... $(MODULE)/tests/...
+	$(GO) test -v -race ./tests/...
 
-test-coverage: test
+test-coverage:
+	$(GO) test -v -race -coverprofile=$(COVER_PROFILE) -covermode=atomic -coverpkg=./... ./tests/...
 	$(GO) tool cover -html=$(COVER_PROFILE) -o $(COVER_HTML)
 
 coverage: test-coverage
