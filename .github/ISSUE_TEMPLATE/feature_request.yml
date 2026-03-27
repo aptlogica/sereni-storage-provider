@@ -1,0 +1,15 @@
+name: Feature request
+description: Suggest a feature
+labels: enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a feature!
+  - type: input
+    id: feature
+    attributes:
+      label: Feature
+      description: Describe the feature
+    validations:
+      required: true

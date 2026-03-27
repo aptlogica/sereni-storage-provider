@@ -2,10 +2,46 @@
 
 > Enterprise-grade object storage service and open source storage service with S3-compatible APIs. A comprehensive file storage API and cloud storage backend providing advanced access control, multi-tenant architecture, and seamless integration with modern cloud infrastructure.
 
+
 [![Version](https://img.shields.io/badge/Version-1.0.0-blue.svg)](LICENSE)
 [![Go Version](https://img.shields.io/badge/Go-1.23+-00ADD8?style=flat-square&logo=go)](https://golang.org)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Quality Gate Status](https://sonar.aptlogica.com/api/project_badges/measure?project=aptlogica_sereni-storage-provider_268fdb46-e26c-4658-8e95-7ad63d65f666&metric=alert_status&token=sqb_152d71a0f9a3621514372a3e4c87460e3059bbc2)](https://sonar.aptlogica.com/dashboard?id=aptlogica_sereni-storage-provider_268fdb46-e26c-4658-8e95-7ad63d65f666)
+[![Build Status](https://github.com/aptlogica/sereni-storage-provider/actions/workflows/ci.yml/badge.svg)](https://github.com/aptlogica/sereni-storage-provider/actions/workflows/ci.yml)
+[![Coverage Status](https://img.shields.io/badge/coverage-91%25-brightgreen)](./coverage.html)
+[![Release](https://img.shields.io/github/v/release/aptlogica/sereni-storage-provider)](https://github.com/aptlogica/sereni-storage-provider/releases)
+## API Endpoints
+
+All endpoints are prefixed with `/api/v1`.
+
+| Method | Path                  | Description                        |
+|--------|-----------------------|------------------------------------|
+| GET    | /health               | Health check                       |
+| POST   | /storage/upload       | Upload a file                      |
+| GET    | /storage/download     | Download a file                    |
+| DELETE | /storage/delete       | Delete a file                      |
+| GET    | /storage/consumption  | Get file/directory size            |
+
+See [docs/swagger.yaml](docs/swagger.yaml) for full OpenAPI spec and request/response details.
+
+## Architecture Diagram
+
+```mermaid
+flowchart TD
+    Client-->|REST/HTTP|API[API Layer]
+    API-->|Service Calls|Service[Service Layer]
+    Service-->|Provider Interface|Provider[Storage Provider]
+    Provider-->|Local/S3/MinIO|Backend[Storage Backend]
+```
+
+## How to Contribute
+
+We welcome contributions! Please:
+- Read [CONTRIBUTING.md](CONTRIBUTING.md)
+- Open issues for bugs/feature requests
+- Fork and submit pull requests
+- Follow the code style and add tests
+
 
 ## Overview
 

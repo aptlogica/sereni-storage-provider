@@ -320,6 +320,14 @@ func TestLocalStorageProvider_Exists(t *testing.T) {
 	if exists {
 		t.Errorf("expected false, got true")
 	}
+
+	_, err = provider.Exists(context.Background(), "../outside.txt")
+	if err == nil {
+		t.Fatalf("expected error for invalid path, got nil")
+	}
+	if err != app_errors.ErrInvalidPath {
+		t.Fatalf("expected ErrInvalidPath, got %v", err)
+	}
 }
 
 func TestLocalStorageProvider_GetURL(t *testing.T) {
@@ -463,6 +471,68 @@ func TestLocalStorageProvider_GetSize(t *testing.T) {
 
 			if isDir != tt.expectedIsDir {
 				t.Errorf("expected isDir %v, got %v", tt.expectedIsDir, isDir)
+			}
+		})
+	}
+}
+
+func TestNewLocalStorageProvider_URLPathVariants(t *testing.T) {
+	tempDir := t.TempDir()
+	previousWD, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("failed to get working dir: %v", err)
+	}
+	defer func() {
+		if chErr := os.Chdir(previousWD); chErr != nil {
+			t.Fatalf("failed to restore working dir: %v", chErr)
+		}
+	}()
+	if err := os.Chdir(tempDir); err != nil {
+		t.Fatalf("failed to change working dir: %v", err)
+	}
+
+	tests := []struct {
+		name        string
+		cfgPath     string
+		serverCfg   config.ServerConfig
+		expectedURL string
+	}{
+		{
+			name:    "relative path with ip",
+			cfgPath: "./uploads",
+			serverCfg: config.ServerConfig{
+				Scheme: "http",
+				Host:   "localhost",
+				IP:     "127.0.0.1",
+				Port:   "8080",
+			},
+			expectedURL: "http://127.0.0.1:8080/uploads/",
+		},
+		{
+			name:    "dot path defaults to uploads",
+			cfgPath: ".",
+			serverCfg: config.ServerConfig{
+				Scheme: "http",
+				Host:   "localhost",
+				Port:   "8080",
+			},
+			expectedURL: "http://localhost:8080/uploads/",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := config.StorageDevConfig{Path: tt.cfgPath}
+			provider, err := localPkg.NewLocalStorageProvider(&cfg, &tt.serverCfg)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			localProvider, ok := provider.(*localPkg.LocalStorageProvider)
+			if !ok {
+				t.Fatalf("expected *LocalStorageProvider, got %T", provider)
+			}
+			if localProvider.BaseURL != tt.expectedURL {
+				t.Fatalf("expected BaseURL %s, got %s", tt.expectedURL, localProvider.BaseURL)
 			}
 		})
 	}
