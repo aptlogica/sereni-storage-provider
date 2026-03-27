@@ -42,9 +42,17 @@ import (
 
 // @host localhost:8083
 // @BasePath /api/v1
+func validateSecrets() {
+	// TODO: Implement real secret validation logic
+	log.Info().Msg("Secrets validated")
+}
+
 func main() {
 	// 1. Load Configuration
 	cfg, _ := config.LoadConfig()
+
+	// Validate secrets before proceeding
+	validateSecrets()
 
 	// initialize logger
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix

@@ -1,0 +1,10 @@
+name: OpenSSF Scorecard
+on:
+  push:
+    branches: [main]
+jobs:
+  analysis:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ossf/scorecard-action@v2

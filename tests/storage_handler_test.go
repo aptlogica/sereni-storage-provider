@@ -7,13 +7,14 @@ package tests
 import (
 	"bytes"
 	"context"
+	"errors"
+	"github.com/aptlogica/sereni-storage-provider/internal/api/handlers"
+	app_errors "github.com/aptlogica/sereni-storage-provider/internal/app-errors"
+	"github.com/aptlogica/sereni-storage-provider/internal/services"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
-	"github.com/aptlogica/sereni-storage-provider/internal/api/handlers"
-	app_errors "github.com/aptlogica/sereni-storage-provider/internal/app-errors"
-	"github.com/aptlogica/sereni-storage-provider/internal/services"
 	"strings"
 	"testing"
 
@@ -100,6 +101,38 @@ func TestStorageHandler_Upload(t *testing.T) {
 			expectedBody:   `{"message":"File uploaded successfully","path":"uploads/test.txt","url":"http://example.com/uploads/test.txt"}`,
 		},
 		{
+			name:          "allowed types empty",
+			fileContent:   "test content",
+			fileName:      "test.txt",
+			contentType:   "text/plain",
+			path:          "uploads",
+			maxUploadSize: 100,
+			allowedTypes:  []string{},
+			mockSetup: func(m *mockStorageProviderHandler) {
+				m.uploadFn = func(ctx context.Context, objectName string, reader io.Reader, size int64, contentType string) (string, error) {
+					return "http://example.com/uploads/test.txt", nil
+				}
+			},
+			expectedStatus: http.StatusOK,
+			expectedBody:   `{"message":"File uploaded successfully","path":"uploads/test.txt","url":"http://example.com/uploads/test.txt"}`,
+		},
+		{
+			name:          "path includes filename",
+			fileContent:   "test content",
+			fileName:      "test.txt",
+			contentType:   "text/plain",
+			path:          "uploads/test.txt",
+			maxUploadSize: 100,
+			allowedTypes:  []string{"text/plain"},
+			mockSetup: func(m *mockStorageProviderHandler) {
+				m.uploadFn = func(ctx context.Context, objectName string, reader io.Reader, size int64, contentType string) (string, error) {
+					return "http://example.com/uploads/test.txt", nil
+				}
+			},
+			expectedStatus: http.StatusOK,
+			expectedBody:   `{"message":"File uploaded successfully","path":"uploads/test.txt","url":"http://example.com/uploads/test.txt"}`,
+		},
+		{
 			name:           "no file",
 			fileContent:    "",
 			fileName:       "",
@@ -110,6 +143,22 @@ func TestStorageHandler_Upload(t *testing.T) {
 			mockSetup:      func(m *mockStorageProviderHandler) {},
 			expectedStatus: http.StatusBadRequest,
 			expectedBody:   `{"error":"No file uploaded"}`,
+		},
+		{
+			name:          "upload error",
+			fileContent:   "test content",
+			fileName:      "test.txt",
+			contentType:   "text/plain",
+			path:          "uploads",
+			maxUploadSize: 100,
+			allowedTypes:  []string{"text/plain"},
+			mockSetup: func(m *mockStorageProviderHandler) {
+				m.uploadFn = func(ctx context.Context, objectName string, reader io.Reader, size int64, contentType string) (string, error) {
+					return "", errors.New("upload failed")
+				}
+			},
+			expectedStatus: http.StatusInternalServerError,
+			expectedBody:   `{"error":"failed to upload file"}`,
 		},
 		{
 			name:           "file too large",
@@ -236,6 +285,17 @@ func TestStorageHandler_Download(t *testing.T) {
 			expectedBody:   `{"error":"invalid path"}`,
 		},
 		{
+			name: "internal error",
+			path: "error.txt",
+			mockSetup: func(m *mockStorageProviderHandler) {
+				m.getFileFn = func(ctx context.Context, path string) (io.ReadCloser, error) {
+					return nil, errors.New("storage error")
+				}
+			},
+			expectedStatus: http.StatusInternalServerError,
+			expectedBody:   `{"error":"failed to access file"}`,
+		},
+		{
 			name:           "no path",
 			path:           "",
 			mockSetup:      func(m *mockStorageProviderHandler) {},
@@ -314,6 +374,17 @@ func TestStorageHandler_Delete(t *testing.T) {
 			},
 			expectedStatus: http.StatusBadRequest,
 			expectedBody:   `{"error":"invalid path"}`,
+		},
+		{
+			name: "internal error",
+			path: "error.txt",
+			mockSetup: func(m *mockStorageProviderHandler) {
+				m.deleteFileFn = func(ctx context.Context, path string) error {
+					return errors.New("storage error")
+				}
+			},
+			expectedStatus: http.StatusInternalServerError,
+			expectedBody:   `{"error":"failed to delete file"}`,
 		},
 		{
 			name:           "no path",
