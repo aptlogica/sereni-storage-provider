@@ -1,6 +1,6 @@
 # sereni-storage-provider - Cloud-Native Object Storage Service
 
-> Enterprise-grade object storage service and open source storage service with S3-compatible APIs. A comprehensive file storage API and cloud storage backend providing advanced access control, multi-tenant architecture, and seamless integration with modern cloud infrastructure.
+**Sereni Storage Provider** is an open-source, enterprise-grade storage platform that provides S3-compatible storage, MinIO support, and local file system integration. Built for scalability and flexibility, it enables developers to manage and store data securely across cloud-native and on-premise infrastructures. With API compatibility, robust access control mechanisms, and a scalable backend architecture, Sereni simplifies storage management for modern, distributed applications.
 
 
 [![Version](https://img.shields.io/badge/Version-1.0.0-blue.svg)](LICENSE)
