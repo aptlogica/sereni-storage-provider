@@ -2,7 +2,7 @@
 > Enterprise-grade object storage service and open source storage service with S3-compatible APIs. A comprehensive file storage API and cloud storage backend providing advanced access control, multi-tenant architecture, and seamless integration with modern cloud infrastructure.
 
 [![Version](https://img.shields.io/badge/Version-1.0.0-blue.svg)](LICENSE)
-[![Go Version](https://img.shields.io/badge/Go-1.23+-00ADD8?style=flat-square&logo=go)](https://golang.org)
+[![Go Version](https://img.shields.io/badge/Go-1.26.2-00ADD8?style=flat-square&logo=go)](https://golang.org)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Quality Gate Status](https://sonar.aptlogica.com/api/project_badges/measure?project=aptlogica_sereni-storage-provider_268fdb46-e26c-4658-8e95-7ad63d65f666&metric=alert_status&token=sqb_152d71a0f9a3621514372a3e4c87460e3059bbc2)](https://sonar.aptlogica.com/dashboard?id=aptlogica_sereni-storage-provider_268fdb46-e26c-4658-8e95-7ad63d65f666)
 [![Build Status](https://github.com/aptlogica/sereni-storage-provider/actions/workflows/ci.yml/badge.svg)](https://github.com/aptlogica/sereni-storage-provider/actions/workflows/ci.yml)
