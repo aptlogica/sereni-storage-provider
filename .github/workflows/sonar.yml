@@ -8,6 +8,9 @@ on:
       - master
       - 'release/**'
   pull_request:
+
+permissions:
+  contents: read
     
 jobs:
   sonar:
