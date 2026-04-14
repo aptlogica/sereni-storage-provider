@@ -56,7 +56,7 @@ We welcome contributions! Please:
 - **Cloud-Native Design**: Kubernetes deployment with auto-scaling capabilities
 
 ## Architecture
-- Go 1.23+, idiomatic design
+- Go 1.26.2+, idiomatic design
 - Modular, testable codebase
 
 ## Installation
