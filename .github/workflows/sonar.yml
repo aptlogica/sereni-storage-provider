@@ -11,7 +11,7 @@ on:
 
 permissions:
   contents: read
-    
+
 jobs:
   sonar:
     name: Sonar Scan
@@ -37,21 +37,23 @@ jobs:
             -coverprofile=coverage.out \
             -covermode=atomic \
             -coverpkg=./...
-      
+
       - name: Show coverage summary
+        run: go tool cover -func=coverage.out
+
+      # ✅ Optional debug (remove later)
+      - name: Debug Sonar Env
         run: |
-          go tool cover -func=coverage.out
+          echo "SONAR_HOST_URL=$SONAR_HOST_URL"
+          echo "SONAR_ORGANIZATION=$SONAR_ORGANIZATION"
 
       - name: Sonar Scan
         uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-          SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
-
-      # - name: Sonar Quality Gate
-      #   uses: SonarSource/sonarqube-quality-gate-action@v1.1.0
-      #   timeout-minutes: 10
-      #   env:
-      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      #     SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          
+          # ✅ Hardcoded to avoid broken secret issue
+          SONAR_HOST_URL: https://sonarcloud.io
+          
+          # Optional (only if you want via env instead of properties file)
+          SONAR_ORGANIZATION: aptlogica
