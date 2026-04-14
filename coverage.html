@@ -61,7 +61,7 @@
 				
 				<option value="file2">github.com/aptlogica/sereni-storage-provider/internal/api/handlers/storage_handler.go (95.5%)</option>
 				
-				<option value="file3">github.com/aptlogica/sereni-storage-provider/internal/api/middleware/middleware.go (97.7%)</option>
+				<option value="file3">github.com/aptlogica/sereni-storage-provider/internal/api/middleware/middleware.go (100.0%)</option>
 				
 				<option value="file4">github.com/aptlogica/sereni-storage-provider/internal/api/routes/routes.go (100.0%)</option>
 				
@@ -69,15 +69,15 @@
 				
 				<option value="file6">github.com/aptlogica/sereni-storage-provider/internal/providers/storage/factory.go (100.0%)</option>
 				
-				<option value="file7">github.com/aptlogica/sereni-storage-provider/internal/providers/storage/local/local_storage.go (86.2%)</option>
+				<option value="file7">github.com/aptlogica/sereni-storage-provider/internal/providers/storage/local/local_storage.go (85.4%)</option>
 				
-				<option value="file8">github.com/aptlogica/sereni-storage-provider/internal/providers/storage/minio/minio_storage.go (80.0%)</option>
+				<option value="file8">github.com/aptlogica/sereni-storage-provider/internal/providers/storage/minio/minio_storage.go (78.9%)</option>
 				
-				<option value="file9">github.com/aptlogica/sereni-storage-provider/internal/providers/storage/s3/s3_storage.go (89.5%)</option>
+				<option value="file9">github.com/aptlogica/sereni-storage-provider/internal/providers/storage/s3/s3_storage.go (88.1%)</option>
 				
 				<option value="file10">github.com/aptlogica/sereni-storage-provider/internal/services/storage_service.go (95.0%)</option>
 				
-				<option value="file11">github.com/aptlogica/sereni-storage-provider/internal/utils/file/file.go (88.5%)</option>
+				<option value="file11">github.com/aptlogica/sereni-storage-provider/internal/utils/file/file.go (92.3%)</option>
 				
 				</select>
 			</div>
@@ -782,21 +782,21 @@ func janitor() <span class="cov1" title="1">{
 func JanitorWithInterval(ctx context.Context, interval time.Duration) <span class="cov3" title="2">{
         ticker := time.NewTicker(interval)
         defer ticker.Stop()
-        for </span><span class="cov9" title="11">{
+        for </span><span class="cov9" title="12">{
                 select </span>{
                 case &lt;-ctx.Done():<span class="cov1" title="1">
                         return</span>
-                case &lt;-ticker.C:<span class="cov8" title="9">
+                case &lt;-ticker.C:<span class="cov8" title="10">
                         cutoff := time.Now().Add(-10 * time.Minute)
                         ClientsMu.Lock()
-                        for k, v := range Clients </span><span class="cov8" title="10">{
+                        for k, v := range Clients </span><span class="cov9" title="11">{
                                 v.mu.Lock()
                                 if v.Last.Before(cutoff) </span><span class="cov1" title="1">{
                                         delete(Clients, k)
                                 }</span>
-                                <span class="cov8" title="10">v.mu.Unlock()</span>
+                                <span class="cov9" title="11">v.mu.Unlock()</span>
                         }
-                        <span class="cov8" title="9">ClientsMu.Unlock()</span>
+                        <span class="cov8" title="10">ClientsMu.Unlock()</span>
                 }
         }
 }
@@ -821,7 +821,7 @@ func RateLimit() gin.HandlerFunc <span class="cov1" title="1">{
                 now := time.Now()
                 elapsed := now.Sub(l.Last).Seconds()
                 l.tokens += elapsed
-                if l.tokens &gt; 10 </span><span class="cov0" title="0">{
+                if l.tokens &gt; 10 </span><span class="cov1" title="1">{
                         l.tokens = 10
                 }</span>
                 <span class="cov9" title="12">l.Last = now
@@ -1052,7 +1052,10 @@ type LocalStorageProvider struct {
 }
 
 func NewLocalStorageProvider(cfg *config.StorageDevConfig, serverCfg *config.ServerConfig) (interfaces.StorageProvider, error) <span class="cov10" title="13">{
-        if cfg.Path == "" </span><span class="cov1" title="1">{
+        if cfg == nil </span><span class="cov0" title="0">{
+                return nil, errors.New("config is required")
+        }</span>
+        <span class="cov10" title="13">if cfg.Path == "" </span><span class="cov1" title="1">{
                 return nil, errors.New("local storage path is required")
         }</span>
 
@@ -1265,7 +1268,10 @@ type MinioStorageProvider struct {
 }
 
 func NewMinioStorageProvider(cfg *config.StorageMinioConfig, serverCfg *config.ServerConfig) (interfaces.StorageProvider, error) <span class="cov6" title="3">{
-        client, err := minio.New(cfg.Endpoint, &amp;minio.Options{
+        if cfg == nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("config is required")
+        }</span>
+        <span class="cov6" title="3">client, err := minio.New(cfg.Endpoint, &amp;minio.Options{
                 Creds:  credentials.NewStaticV4(cfg.AccessKey, cfg.SecretKey, ""),
                 Secure: cfg.UseSSL,
         })
@@ -1440,12 +1446,14 @@ type S3StorageProvider struct {
 
 func NewS3StorageProvider(cfg *app_config.StorageAWSConfig) (interfaces.StorageProvider, error) <span class="cov7" title="4">{
         ctx := context.TODO()
-
+        if cfg == nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("config is required")
+        }</span>
         // Load AWS config
         // We use custom resolver if endpoint is provided (for S3 compatible services other than AWS if needed via this driver)
         // But usually we use standard AWS loading.
 
-        opts := []func(*aws_config.LoadOptions) error{
+        <span class="cov7" title="4">opts := []func(*aws_config.LoadOptions) error{
                 aws_config.WithRegion(cfg.Region),
                 aws_config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(cfg.AccessKey, cfg.SecretKey, "")),
         }
@@ -1768,7 +1776,7 @@ func SafeJoin(base string, elems ...string) (string, error) <span class="cov10" 
         cleaned := filepath.Clean(joined)
 
         // If joined is absolute, make it relative for the check
-        if filepath.IsAbs(cleaned) </span><span class="cov0" title="0">{
+        if filepath.IsAbs(cleaned) </span><span class="cov1" title="1">{
                 cleaned = strings.TrimPrefix(cleaned, string(filepath.Separator))
         }</span>
 
