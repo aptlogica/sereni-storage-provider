@@ -30,7 +30,9 @@ type S3StorageProvider struct {
 
 func NewS3StorageProvider(cfg *app_config.StorageAWSConfig) (interfaces.StorageProvider, error) {
 	ctx := context.TODO()
-
+	if cfg == nil {
+		return nil, fmt.Errorf("config is required")
+	}
 	// Load AWS config
 	// We use custom resolver if endpoint is provided (for S3 compatible services other than AWS if needed via this driver)
 	// But usually we use standard AWS loading.

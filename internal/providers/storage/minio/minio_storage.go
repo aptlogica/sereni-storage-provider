@@ -25,6 +25,9 @@ type MinioStorageProvider struct {
 }
 
 func NewMinioStorageProvider(cfg *config.StorageMinioConfig, serverCfg *config.ServerConfig) (interfaces.StorageProvider, error) {
+	if cfg == nil {
+		return nil, fmt.Errorf("config is required")
+	}
 	client, err := minio.New(cfg.Endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(cfg.AccessKey, cfg.SecretKey, ""),
 		Secure: cfg.UseSSL,
