@@ -25,6 +25,9 @@ type LocalStorageProvider struct {
 }
 
 func NewLocalStorageProvider(cfg *config.StorageDevConfig, serverCfg *config.ServerConfig) (interfaces.StorageProvider, error) {
+	if cfg == nil {
+		return nil, errors.New("config is required")
+	}
 	if cfg.Path == "" {
 		return nil, errors.New("local storage path is required")
 	}
