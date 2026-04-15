@@ -1,13 +1,27 @@
-# sereni-storage-provider - Cloud-Native Object Storage Service
-> Enterprise-grade object storage service and open source storage service with S3-compatible APIs. A comprehensive file storage API and cloud storage backend providing advanced access control, multi-tenant architecture, and seamless integration with modern cloud infrastructure.
+<h1 align="center">sereni-storage-provider - Cloud-Native Object Storage Service</h1>
 
-[![Version](https://img.shields.io/badge/Version-1.0.0-blue.svg)](LICENSE)
-[![Go Version](https://img.shields.io/badge/Go-1.26.2-00ADD8?style=flat-square&logo=go)](https://golang.org)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Quality Gate Status](https://sonar.aptlogica.com/api/project_badges/measure?project=aptlogica_sereni-storage-provider_268fdb46-e26c-4658-8e95-7ad63d65f666&metric=alert_status&token=sqb_152d71a0f9a3621514372a3e4c87460e3059bbc2)](https://sonar.aptlogica.com/dashboard?id=aptlogica_sereni-storage-provider_268fdb46-e26c-4658-8e95-7ad63d65f666)
-[![Build Status](https://github.com/aptlogica/sereni-storage-provider/actions/workflows/ci.yml/badge.svg)](https://github.com/aptlogica/sereni-storage-provider/actions/workflows/ci.yml)
-[![Coverage Status](https://img.shields.io/badge/coverage-91%25-brightgreen)](./coverage.html)
-[![Release](https://img.shields.io/github/v/release/aptlogica/sereni-storage-provider)](https://github.com/aptlogica/sereni-storage-provider/releases)
+<p align="center">Enterprise-grade object storage service and open source storage service with S3-compatible APIs. A comprehensive file storage API and cloud storage backend providing advanced access control, multi-tenant architecture, and seamless integration with modern cloud infrastructure.</p>
+
+<p align="center">
+<a href="LICENSE"><img src="https://img.shields.io/badge/Version-1.0.0-blue?style=for-the-badge" alt="Version"></a>
+<a href="https://golang.org"><img src="https://img.shields.io/badge/Go-1.26.2-00ADD8?style=for-the-badge&logo=go&logoColor=white" alt="Go Version"></a>
+<a href="https://aws.amazon.com/s3/"><img src="https://img.shields.io/badge/AWS_S3-Compatible-FF9900?style=for-the-badge&logo=amazons3&logoColor=white" alt="AWS S3"></a>
+<a href="https://min.io/"><img src="https://img.shields.io/badge/MinIO-Supported-C72E49?style=for-the-badge&logo=minio&logoColor=white" alt="MinIO"></a>
+<a href="https://gin-gonic.com/"><img src="https://img.shields.io/badge/Gin-Framework-008ECF?style=for-the-badge&logo=gin&logoColor=white" alt="Gin"></a>
+<a href="https://www.docker.com/"><img src="https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker"></a>
+<a href="https://swagger.io/"><img src="https://img.shields.io/badge/Swagger-Documented-85EA2D?style=for-the-badge&logo=swagger&logoColor=black" alt="Swagger"></a>
+</p>
+
+<p align="center">
+<a href="https://github.com/aptlogica/sereni-storage-provider/actions/workflows/ci.yml"><img src="https://github.com/aptlogica/sereni-storage-provider/actions/workflows/ci.yml/badge.svg" alt="Build Status"></a>
+<a href="https://github.com/aptlogica/sereni-storage-provider/actions/workflows/codeql.yml"><img src="https://github.com/aptlogica/sereni-storage-provider/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"></a>
+<a href="https://sonarcloud.io/dashboard?id=aptlogica_sereni-storage-provider"><img src="https://sonarcloud.io/api/project_badges/measure?project=aptlogica_sereni-storage-provider&metric=alert_status" alt="Quality Gate Status"></a>
+<a href="./coverage.html"><img src="https://img.shields.io/badge/coverage-91%25-brightgreen" alt="Coverage Status"></a>
+</p>
+
+<p align="center">
+<a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License"></a>
+</p>
 ## API Endpoints
 
 All endpoints are prefixed with `/api/v1`.
