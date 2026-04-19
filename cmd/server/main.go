@@ -1,7 +1,7 @@
 /*
-Copyright (c) 2026 Aptlogica Technologies Private Limited
+Copyright 2026-2030 Aptlogica Technologies Pvt Ltd
 This file is part of software developed by Aptlogica Technologies Private Limited.
-Licensed under the MIT License. See the LICENSE file in the project root
+Licensed under the Apache License 2.0. See the LICENSE file in the project root
 for full license information.
 Websites:
 https://www.aptlogica.com
@@ -38,7 +38,7 @@ import (
 // @contact.email support@swagger.io
 
 // @license.name Apache 2.0
-// @license.url http://www.apache.org/licenses/LICENSE-0.0.html
+// @license.url https://www.apache.org/licenses/LICENSE-2.0.html
 
 // @host localhost:8083
 // @BasePath /api/v1
