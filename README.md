@@ -59,15 +59,18 @@ We welcome contributions! Please:
 
 **Sereni Storage Provider** is an open-source, enterprise-grade storage platform that provides S3-compatible storage, MinIO support, and local file system integration. Built for scalability and flexibility, it enables developers to manage and store data securely across cloud-native and on-premise infrastructures. With API compatibility, robust access control mechanisms, and a scalable backend architecture, Sereni simplifies storage management for modern, distributed applications.
 
-## Key Features
+**MinIO vs Amazon S3:** MinIO is an S3-compatible open-source object store — the same client code works against both. In production, point S3_ENDPOINT at your Amazon S3 region endpoint. In development, MinIO runs locally via Docker as a drop-in replacement with no code changes.
 
 - **S3-Compatible APIs**: Full compatibility with Amazon S3 client libraries and tools
 - **Advanced Access Control**: Role-based permissions with fine-grained access policies
 - **Multi-Tenant Architecture**: Isolated storage contexts for different organizations
-- **High Performance**: Optimized for large file uploads with resumable transfers
+- **High Performance**: Optimized for large file uploads with high throughput
 - **Data Security**: Encryption at rest and in transit with comprehensive audit logging
 - **Storage Microservice**: Complete object storage API with file upload service capabilities
 - **Cloud-Native Design**: Kubernetes deployment with auto-scaling capabilities
+
+### Antivirus Integration
+When used with [sereni-antivirus-clamav](https://github.com/aptlogica/sereni-antivirus-clamav), all file uploads are scanned for malware before being committed to storage. The scanning step is handled by the sereni-base orchestration layer — neither service calls the other directly. Configure `ANTIVIRUS_SERVICE_URL` in sereni-base to enable this behaviour.
 
 ## Architecture
 - Go 1.26.2+, idiomatic design
@@ -185,6 +188,14 @@ S3_ENDPOINT=http://localhost:9000
 
 ## Security
 See [SECURITY.md](SECURITY.md) for reporting vulnerabilities.
+
+## SereniBase Ecosystem
+
+Sereni Storage Provider is part of the [SereniBase](https://github.com/aptlogica/sereni-base) ecosystem, a collection of microservices designed to build robust, scalable applications.
+
+- [sereni-base](https://github.com/aptlogica/sereni-base) - Core orchestration layer
+- [sereni-antivirus-clamav](https://github.com/aptlogica/sereni-antivirus-clamav) - Antivirus scanning service
+- [sereni-auth-provider](https://github.com/aptlogica/sereni-auth-provider) - Authentication and authorization service
 
 ## License
 Apache License 2.0. Copyright (c) 2026 Aptlogica Technologies.
