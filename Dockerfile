@@ -6,14 +6,15 @@ WORKDIR /app
 # Install required packages
 RUN apk add --no-cache git ca-certificates
 
-# Install swag CLI for swagger docs generation
-RUN go install github.com/swaggo/swag/cmd/swag@latest
 
 # Copy go mod files
 COPY go.mod go.sum ./
 
 # Download dependencies
 RUN go mod tidy && go mod download
+
+# Install swag CLI for swagger docs generation (pinned)
+RUN go install github.com/swaggo/swag/cmd/swag@v1.16.6
 
 # Copy source code
 COPY . .
