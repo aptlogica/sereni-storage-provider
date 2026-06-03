@@ -30,7 +30,7 @@ import (
 
 // @title Sereni Storage Provider API
 // @version 1.0
-// @description A robust storage provider service supporting Local, S3, and MinIO backends.
+// @description A robust storage provider service supporting Local, S3, and RustFS backends.
 // @termsOfService http://swagger.io/terms/
 
 // @contact.name API Support

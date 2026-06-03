@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "A robust storage provider service supporting Local, S3, and MinIO backends.",
+        "description": "A robust storage provider service supporting Local, S3, and RustFS backends.",
         "title": "Sereni Storage Provider API",
         "termsOfService": "http://swagger.io/terms/",
         "contact": {

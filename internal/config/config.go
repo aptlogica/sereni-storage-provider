@@ -27,9 +27,9 @@ type ServerConfig struct {
 }
 
 type StorageConfig struct {
-	Driver string // "local", "s3", "minio"
+	Driver string // "local", "s3", "rustfs"
 	Dev    StorageDevConfig
-	Minio  StorageMinioConfig
+	RustFS StorageRustFSConfig
 	AWS    StorageAWSConfig
 }
 
@@ -37,7 +37,7 @@ type StorageDevConfig struct {
 	Path string
 }
 
-type StorageMinioConfig struct {
+type StorageRustFSConfig struct {
 	Endpoint  string
 	AccessKey string
 	SecretKey string
@@ -98,11 +98,11 @@ func LoadConfig() (Config, error) {
 	cfg.Storage.Driver = viper.GetString("STORAGE_DRIVER")
 	cfg.Storage.Dev.Path = viper.GetString("STORAGE_DEV_PATH")
 
-	cfg.Storage.Minio.Endpoint = viper.GetString("MINIO_ENDPOINT")
-	cfg.Storage.Minio.AccessKey = viper.GetString("MINIO_ACCESS_KEY")
-	cfg.Storage.Minio.SecretKey = viper.GetString("MINIO_SECRET_KEY")
-	cfg.Storage.Minio.Bucket = viper.GetString("MINIO_BUCKET")
-	cfg.Storage.Minio.UseSSL = viper.GetBool("MINIO_USE_SSL")
+	cfg.Storage.RustFS.Endpoint = viper.GetString("RUSTFS_ENDPOINT")
+	cfg.Storage.RustFS.AccessKey = viper.GetString("RUSTFS_ACCESS_KEY")
+	cfg.Storage.RustFS.SecretKey = viper.GetString("RUSTFS_SECRET_KEY")
+	cfg.Storage.RustFS.Bucket = viper.GetString("RUSTFS_BUCKET")
+	cfg.Storage.RustFS.UseSSL = viper.GetBool("RUSTFS_USE_SSL")
 
 	cfg.Storage.AWS.Region = viper.GetString("AWS_REGION")
 	cfg.Storage.AWS.Bucket = viper.GetString("AWS_BUCKET")

@@ -11,7 +11,7 @@ import (
 	"github.com/aptlogica/sereni-storage-provider/internal/config"
 	"github.com/aptlogica/sereni-storage-provider/internal/providers/storage/interfaces"
 	"github.com/aptlogica/sereni-storage-provider/internal/providers/storage/local"
-	"github.com/aptlogica/sereni-storage-provider/internal/providers/storage/minio"
+	"github.com/aptlogica/sereni-storage-provider/internal/providers/storage/rustfs"
 	"github.com/aptlogica/sereni-storage-provider/internal/providers/storage/s3"
 )
 
@@ -20,8 +20,8 @@ func NewStorage(storageCfg *config.StorageConfig, serverCfg *config.ServerConfig
 	case "local", "dev":
 		return local.NewLocalStorageProvider(&storageCfg.Dev, serverCfg)
 
-	case "minio":
-		return minio.NewMinioStorageProvider(&storageCfg.Minio, serverCfg)
+	case "rustfs":
+		return rustfs.NewRustFSStorageProvider(&storageCfg.RustFS, serverCfg)
 
 	case "aws", "s3":
 		return s3.NewS3StorageProvider(&storageCfg.AWS)

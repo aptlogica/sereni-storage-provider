@@ -6,11 +6,13 @@ package s3
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
 	"time"
 
+	app_errors "github.com/aptlogica/sereni-storage-provider/internal/app-errors"
 	app_config "github.com/aptlogica/sereni-storage-provider/internal/config"
 	"github.com/aptlogica/sereni-storage-provider/internal/providers/storage/interfaces"
 
@@ -19,6 +21,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/smithy-go"
 )
 
 type S3StorageProvider struct {
@@ -154,24 +157,34 @@ func (s *S3StorageProvider) GetSize(ctx context.Context, objectName string) (int
 		return *out.ContentLength, false, nil
 	}
 
-	// If the path ends with "/", treat it as a directory
-	if strings.HasSuffix(objectName, "/") {
-		size, err := s.getDirectorySize(ctx, objectName)
-		return size, true, err
+	if err != nil && !isObjectNotFound(err) {
+		return 0, false, fmt.Errorf("failed to get object metadata: %w", err)
 	}
 
-	// Otherwise, return the HeadObject error
-	return 0, false, fmt.Errorf("failed to get object metadata: %w", err)
+	size, hasObjects, listErr := s.getDirectorySize(ctx, objectName)
+	if listErr != nil {
+		return 0, false, listErr
+	}
+	if hasObjects || strings.HasSuffix(objectName, "/") {
+		return size, true, nil
+	}
+
+	if err != nil {
+		return 0, false, app_errors.FileNotFound
+	}
+
+	return 0, false, fmt.Errorf("failed to get object metadata: content length missing")
 }
 
 // getDirectorySize calculates the total size of all objects with the given prefix
-func (s *S3StorageProvider) getDirectorySize(ctx context.Context, prefix string) (int64, error) {
+func (s *S3StorageProvider) getDirectorySize(ctx context.Context, prefix string) (int64, bool, error) {
 	// Ensure prefix ends with "/" for directory-like behavior
 	if prefix != "" && !strings.HasSuffix(prefix, "/") {
 		prefix += "/"
 	}
 
 	var totalSize int64
+	var objectCount int
 	paginator := s3.NewListObjectsV2Paginator(s.Client, &s3.ListObjectsV2Input{
 		Bucket: aws.String(s.Bucket),
 		Prefix: aws.String(prefix),
@@ -180,15 +193,26 @@ func (s *S3StorageProvider) getDirectorySize(ctx context.Context, prefix string)
 	for paginator.HasMorePages() {
 		page, err := paginator.NextPage(ctx)
 		if err != nil {
-			return 0, fmt.Errorf("failed to list objects: %w", err)
+			return 0, false, fmt.Errorf("failed to list objects: %w", err)
 		}
 
 		for _, obj := range page.Contents {
 			if obj.Size != nil {
 				totalSize += *obj.Size
 			}
+			objectCount++
 		}
 	}
 
-	return totalSize, nil
+	return totalSize, objectCount > 0, nil
+}
+
+func isObjectNotFound(err error) bool {
+	var apiErr smithy.APIError
+	if errors.As(err, &apiErr) {
+		code := strings.ToLower(apiErr.ErrorCode())
+		return code == "nosuchkey" || code == "notfound" || code == "nosuchbucket"
+	}
+	msg := strings.ToLower(err.Error())
+	return strings.Contains(msg, "nosuchkey") || strings.Contains(msg, "not found") || strings.Contains(msg, "status code: 404")
 }
