@@ -6,7 +6,7 @@
 <a href="LICENSE"><img src="https://img.shields.io/badge/Version-1.0.0-blue?style=for-the-badge" alt="Version"></a>
 <a href="https://golang.org"><img src="https://img.shields.io/badge/Go-1.26.2-00ADD8?style=for-the-badge&logo=go&logoColor=white" alt="Go Version"></a>
 <a href="https://aws.amazon.com/s3/"><img src="https://img.shields.io/badge/AWS_S3-Compatible-FF9900?style=for-the-badge&logo=amazons3&logoColor=white" alt="AWS S3"></a>
-<a href="https://min.io/"><img src="https://img.shields.io/badge/MinIO-Supported-C72E49?style=for-the-badge&logo=minio&logoColor=white" alt="MinIO"></a>
+<a href="https://rustfs.com/"><img src="https://img.shields.io/badge/RustFS-Supported-000000?style=for-the-badge" alt="RustFS"></a>
 <a href="https://gin-gonic.com/"><img src="https://img.shields.io/badge/Gin-Framework-008ECF?style=for-the-badge&logo=gin&logoColor=white" alt="Gin"></a>
 <a href="https://www.docker.com/"><img src="https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker"></a>
 <a href="https://swagger.io/"><img src="https://img.shields.io/badge/Swagger-Documented-85EA2D?style=for-the-badge&logo=swagger&logoColor=black" alt="Swagger"></a>
@@ -43,7 +43,7 @@ flowchart TD
     Client-->|REST/HTTP|API[API Layer]
     API-->|Service Calls|Service[Service Layer]
     Service-->|Provider Interface|Provider[Storage Provider]
-    Provider-->|Local/S3/MinIO|Backend[Storage Backend]
+    Provider-->|Local/S3/RustFS|Backend[Storage Backend]
 ```
 
 ## How to Contribute
@@ -57,9 +57,9 @@ We welcome contributions! Please:
 
 ## Overview
 
-**Sereni Storage Provider** is an open-source, enterprise-grade storage platform that provides S3-compatible storage, MinIO support, and local file system integration. Built for scalability and flexibility, it enables developers to manage and store data securely across cloud-native and on-premise infrastructures. With API compatibility, robust access control mechanisms, and a scalable backend architecture, Sereni simplifies storage management for modern, distributed applications.
+**Sereni Storage Provider** is an open-source, enterprise-grade storage platform that provides S3-compatible storage, RustFS support, and local file system integration. Built for scalability and flexibility, it enables developers to manage and store data securely across cloud-native and on-premise infrastructures. With API compatibility, robust access control mechanisms, and a scalable backend architecture, Sereni simplifies storage management for modern, distributed applications.
 
-**MinIO vs Amazon S3:** MinIO is an S3-compatible open-source object store — the same client code works against both. In production, point S3_ENDPOINT at your Amazon S3 region endpoint. In development, MinIO runs locally via Docker as a drop-in replacement with no code changes.
+**RustFS and Amazon S3:** RustFS is used as the self-hosted S3-compatible backend for local and on-prem environments. In production, point S3 configuration at your Amazon S3 region endpoint if needed.
 
 - **S3-Compatible APIs**: Full compatibility with Amazon S3 client libraries and tools
 - **Advanced Access Control**: Role-based permissions with fine-grained access policies
@@ -143,14 +143,11 @@ cd sereni-storage-provider
 go mod download
 
 # Set up environment
-cp .env.example .env
+cp example.env .env
 # Configure your storage backend in .env
 
-# Start MinIO for local development (optional)
-docker run -d \
-  -p 9000:9000 -p 9001:9001 \
-  --name minio \
-  minio/minio server /data --console-address ":9001"
+# Start RustFS and app for local development
+docker compose up -d rustfs sereni-storage-provider
 
 # Start development server
 go run ./cmd/server
@@ -158,29 +155,29 @@ go run ./cmd/server
 
 ### Environment Configuration
 ```bash
-STORAGE_BACKEND=s3
-S3_ENDPOINT=http://localhost:9000
-S3_REGION=us-east-1
-S3_ACCESS_KEY=minioadmin
-S3_SECRET_KEY=minioadmin
-MAX_FILE_SIZE=100MB
-PORT=8080
-LOG_LEVEL=debug
+STORAGE_DRIVER=rustfs
+RUSTFS_ENDPOINT=localhost:9002
+RUSTFS_ACCESS_KEY=rustfsadmin
+RUSTFS_SECRET_KEY=rustfsadmin
+RUSTFS_BUCKET=my-bucket
+RUSTFS_USE_SSL=false
+SERVER_PORT=8083
 ```
 
 ### Storage Backends
 ```bash
 # Local filesystem
-STORAGE_BACKEND=local
-LOCAL_STORAGE_PATH=./uploads
+STORAGE_DRIVER=local
+STORAGE_DEV_PATH=./uploads
 
 # Amazon S3
-STORAGE_BACKEND=s3
-S3_ENDPOINT=https://s3.amazonaws.com
+STORAGE_DRIVER=s3
+AWS_REGION=us-east-1
+AWS_BUCKET=my-bucket
 
-# MinIO (S3-compatible)
-STORAGE_BACKEND=s3
-S3_ENDPOINT=http://localhost:9000
+# RustFS (S3-compatible)
+STORAGE_DRIVER=rustfs
+RUSTFS_ENDPOINT=http://localhost:9002
 ```
 
 ## Testing

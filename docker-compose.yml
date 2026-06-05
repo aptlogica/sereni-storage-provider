@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   sereni-storage-provider:
     build:
@@ -16,37 +14,32 @@ services:
     networks:
       - sereni-network
     depends_on:
-      - minio
+      - rustfs
 
-  minio:
-    image: minio/minio:latest
-    container_name: minio
+  rustfs:
+    image: rustfs/rustfs:latest
+    container_name: rustfs-server
+    security_opt:
+      - "no-new-privileges:true"
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "9000:9000"     # S3 API endpoint
+      - "9001:9001"     # Web Console UI
     environment:
-      # MinIO configuration from .env
-      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
-      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
-      MINIO_BUCKET: ${MINIO_BUCKET}
-      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
-      MINIO_USE_SSL: ${MINIO_USE_SSL}
-      MINIO_CONSOLE_ADDRESS: ":9001"
+      # Configures logical storage volumes inside the mapped directory
+      - RUSTFS_VOLUMES=/data/rustfs{0..3}
+      # Local dev only: all test volumes are on the same host disk.
+      - RUSTFS_UNSAFE_BYPASS_DISK_CHECK=true
+      - RUSTFS_ADDRESS=0.0.0.0:9000
+      - RUSTFS_CONSOLE_ADDRESS=0.0.0.0:9001
+      - RUSTFS_CONSOLE_ENABLE=true
+      # Root Admin Credentials
+      - RUSTFS_ACCESS_KEY=${RUSTFS_ACCESS_KEY}
+      - RUSTFS_SECRET_KEY=${RUSTFS_SECRET_KEY}
     volumes:
-      - minio_data:/data
-    entrypoint: >
-      sh -c '
-        /usr/bin/docker-entrypoint.sh server /data &
-        sleep 5
-        mc alias set myminio http://localhost:9000 "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY"
-        mc mb -p myminio/"$MINIO_BUCKET" || true
-        wait
-      '
+      - ./data:/data
+    restart: unless-stopped
     networks:
       - sereni-network
-
-volumes:
-  minio_data:
 
 networks:
   sereni-network:

@@ -280,7 +280,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "Sereni Storage Provider API",
-	Description:      "A robust storage provider service supporting Local, S3, and MinIO backends.",
+	Description:      "A robust storage provider service supporting Local, S3, and RustFS backends.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

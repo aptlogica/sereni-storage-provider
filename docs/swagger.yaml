@@ -5,7 +5,7 @@ info:
     email: support@swagger.io
     name: API Support
     url: http://www.swagger.io/support
-  description: A robust storage provider service supporting Local, S3, and MinIO backends.
+  description: A robust storage provider service supporting Local, S3, and RustFS backends.
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-0.0.html

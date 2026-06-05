@@ -8,10 +8,11 @@ import (
 	"context"
 	"errors"
 	"io"
-	"github.com/aptlogica/sereni-storage-provider/internal/config"
-	s3Pkg "github.com/aptlogica/sereni-storage-provider/internal/providers/storage/s3"
 	"strings"
 	"testing"
+
+	"github.com/aptlogica/sereni-storage-provider/internal/config"
+	s3Pkg "github.com/aptlogica/sereni-storage-provider/internal/providers/storage/s3"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	aws_config "github.com/aws/aws-sdk-go-v2/config"
@@ -50,6 +51,9 @@ func (m *mockS3Client) HeadBucket(ctx context.Context, params *s3.HeadBucketInpu
 }
 
 func (m *mockS3Client) ListObjectsV2(ctx context.Context, params *s3.ListObjectsV2Input, optFns ...func(*s3.Options)) (*s3.ListObjectsV2Output, error) {
+	if m.listObjectsV2Func == nil {
+		return &s3.ListObjectsV2Output{Contents: []types.Object{}}, nil
+	}
 	return m.listObjectsV2Func(ctx, params, optFns...)
 }
 
@@ -493,6 +497,26 @@ func TestS3StorageProvider_GetSize(t *testing.T) {
 				}, nil
 			},
 			expectedSize:  5120, // 5KB total
+			expectedIsDir: true,
+			expectError:   false,
+		},
+		{
+			name:       "directory size calculation without trailing slash",
+			objectName: "uploads",
+			mockFunc: func(ctx context.Context, params *s3.HeadObjectInput, optFns ...func(*s3.Options)) (*s3.HeadObjectOutput, error) {
+				return nil, errors.New("NoSuchKey")
+			},
+			listFunc: func(ctx context.Context, params *s3.ListObjectsV2Input, optFns ...func(*s3.Options)) (*s3.ListObjectsV2Output, error) {
+				size1 := int64(1024)
+				size2 := int64(2048)
+				return &s3.ListObjectsV2Output{
+					Contents: []types.Object{
+						{Key: aws.String("uploads/file1.txt"), Size: &size1},
+						{Key: aws.String("uploads/file2.txt"), Size: &size2},
+					},
+				}, nil
+			},
+			expectedSize:  3072,
 			expectedIsDir: true,
 			expectError:   false,
 		},

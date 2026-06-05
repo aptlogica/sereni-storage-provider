@@ -5,9 +5,10 @@
 package tests
 
 import (
+	"testing"
+
 	"github.com/aptlogica/sereni-storage-provider/internal/config"
 	"github.com/aptlogica/sereni-storage-provider/internal/providers/storage"
-	"testing"
 )
 
 func TestNewStorage(t *testing.T) {
@@ -50,10 +51,10 @@ func TestNewStorage(t *testing.T) {
 			expectError: false,
 		},
 		{
-			name: "minio storage",
+			name: "rustfs storage",
 			storageCfg: config.StorageConfig{
-				Driver: "minio",
-				Minio: config.StorageMinioConfig{
+				Driver: "rustfs",
+				RustFS: config.StorageRustFSConfig{
 					Endpoint:  "localhost:9000",
 					AccessKey: "key",
 					SecretKey: "secret",
@@ -67,7 +68,7 @@ func TestNewStorage(t *testing.T) {
 				IP:     "localhost",
 				Port:   "8080",
 			},
-			expectError: true, // Expect error due to no minio server
+			expectError: true, // Expect error due to no rustfs server
 		},
 		{
 			name: "invalid driver",
@@ -115,7 +116,7 @@ func TestNewStorage(t *testing.T) {
 			},
 			expectError: false, // S3 provider creation doesn't validate connection
 		},
-		// Note: Testing minio and s3 would require mocking the clients, which is complex.
+		// Note: Testing rustfs and s3 would require mocking the clients, which is complex.
 		// For unit tests, we can assume they work if the code is correct.
 	}
 

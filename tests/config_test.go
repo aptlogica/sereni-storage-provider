@@ -7,8 +7,9 @@ package tests
 import (
 	"os"
 	"path/filepath"
-	configPkg "github.com/aptlogica/sereni-storage-provider/internal/config"
 	"testing"
+
+	configPkg "github.com/aptlogica/sereni-storage-provider/internal/config"
 )
 
 func TestLoadConfig(t *testing.T) {
@@ -44,13 +45,13 @@ func TestLoadConfig(t *testing.T) {
 				"SERVER_IP":             "api.example.com",
 				"SERVER_SCHEME":         "https",
 				"MAX_UPLOAD_SIZE_BYTES": "20",
-				"STORAGE_DRIVER":        "minio",
+				"STORAGE_DRIVER":        "rustfs",
 				"STORAGE_DEV_PATH":      "/tmp/test",
-				"MINIO_ENDPOINT":        "minio.example.com",
-				"MINIO_ACCESS_KEY":      "key",
-				"MINIO_SECRET_KEY":      "secret",
-				"MINIO_BUCKET":          "bucket",
-				"MINIO_USE_SSL":         "true",
+				"RUSTFS_ENDPOINT":       "rustfs.example.com",
+				"RUSTFS_ACCESS_KEY":     "key",
+				"RUSTFS_SECRET_KEY":     "secret",
+				"RUSTFS_BUCKET":         "bucket",
+				"RUSTFS_USE_SSL":        "true",
 				"AWS_REGION":            "us-east-1",
 				"AWS_BUCKET":            "aws-bucket",
 				"AWS_ACCESS_KEY":        "aws-key",
@@ -66,12 +67,12 @@ func TestLoadConfig(t *testing.T) {
 					MaxUploadSizeBytes: 20,
 				},
 				Storage: configPkg.StorageConfig{
-					Driver: "minio",
+					Driver: "rustfs",
 					Dev: configPkg.StorageDevConfig{
 						Path: "/tmp/test",
 					},
-					Minio: configPkg.StorageMinioConfig{
-						Endpoint:  "minio.example.com",
+					RustFS: configPkg.StorageRustFSConfig{
+						Endpoint:  "rustfs.example.com",
 						AccessKey: "key",
 						SecretKey: "secret",
 						Bucket:    "bucket",
@@ -169,20 +170,20 @@ AWS_REGION=us-west-2
 			if cfg.Storage.Dev.Path != tt.expected.Storage.Dev.Path {
 				t.Errorf("Storage.Dev.Path: got %v, want %v", cfg.Storage.Dev.Path, tt.expected.Storage.Dev.Path)
 			}
-			if cfg.Storage.Minio.Endpoint != tt.expected.Storage.Minio.Endpoint {
-				t.Errorf("Storage.Minio.Endpoint: got %v, want %v", cfg.Storage.Minio.Endpoint, tt.expected.Storage.Minio.Endpoint)
+			if cfg.Storage.RustFS.Endpoint != tt.expected.Storage.RustFS.Endpoint {
+				t.Errorf("Storage.RustFS.Endpoint: got %v, want %v", cfg.Storage.RustFS.Endpoint, tt.expected.Storage.RustFS.Endpoint)
 			}
-			if cfg.Storage.Minio.AccessKey != tt.expected.Storage.Minio.AccessKey {
-				t.Errorf("Storage.Minio.AccessKey: got %v, want %v", cfg.Storage.Minio.AccessKey, tt.expected.Storage.Minio.AccessKey)
+			if cfg.Storage.RustFS.AccessKey != tt.expected.Storage.RustFS.AccessKey {
+				t.Errorf("Storage.RustFS.AccessKey: got %v, want %v", cfg.Storage.RustFS.AccessKey, tt.expected.Storage.RustFS.AccessKey)
 			}
-			if cfg.Storage.Minio.SecretKey != tt.expected.Storage.Minio.SecretKey {
-				t.Errorf("Storage.Minio.SecretKey: got %v, want %v", cfg.Storage.Minio.SecretKey, tt.expected.Storage.Minio.SecretKey)
+			if cfg.Storage.RustFS.SecretKey != tt.expected.Storage.RustFS.SecretKey {
+				t.Errorf("Storage.RustFS.SecretKey: got %v, want %v", cfg.Storage.RustFS.SecretKey, tt.expected.Storage.RustFS.SecretKey)
 			}
-			if cfg.Storage.Minio.Bucket != tt.expected.Storage.Minio.Bucket {
-				t.Errorf("Storage.Minio.Bucket: got %v, want %v", cfg.Storage.Minio.Bucket, tt.expected.Storage.Minio.Bucket)
+			if cfg.Storage.RustFS.Bucket != tt.expected.Storage.RustFS.Bucket {
+				t.Errorf("Storage.RustFS.Bucket: got %v, want %v", cfg.Storage.RustFS.Bucket, tt.expected.Storage.RustFS.Bucket)
 			}
-			if cfg.Storage.Minio.UseSSL != tt.expected.Storage.Minio.UseSSL {
-				t.Errorf("Storage.Minio.UseSSL: got %v, want %v", cfg.Storage.Minio.UseSSL, tt.expected.Storage.Minio.UseSSL)
+			if cfg.Storage.RustFS.UseSSL != tt.expected.Storage.RustFS.UseSSL {
+				t.Errorf("Storage.RustFS.UseSSL: got %v, want %v", cfg.Storage.RustFS.UseSSL, tt.expected.Storage.RustFS.UseSSL)
 			}
 			if cfg.Storage.AWS.Region != tt.expected.Storage.AWS.Region {
 				t.Errorf("Storage.AWS.Region: got %v, want %v", cfg.Storage.AWS.Region, tt.expected.Storage.AWS.Region)
