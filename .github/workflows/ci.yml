@@ -3,7 +3,7 @@ permissions:
   contents: read
 on:
   push:
-    branches: [main, develop]
+    branches: [main, master, develop]
   pull_request:
 jobs:
   test:
