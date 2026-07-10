@@ -2,7 +2,7 @@ name: Security - Trivy
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, master, develop]
   pull_request:
 
 permissions:
