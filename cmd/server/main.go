@@ -80,7 +80,7 @@ func main() {
 
 	// Attach middlewares
 	router.Use(middleware.RequestID())
-	router.Use(middleware.RateLimit())
+	router.Use(middleware.RateLimit(int(cfg.Server.RateLimit)))
 
 	// Optional: Add CORS, Middleware here
 	// enforce MaxMultipartMemory from config

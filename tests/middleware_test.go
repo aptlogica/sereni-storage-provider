@@ -48,7 +48,7 @@ func TestRateLimit(t *testing.T) {
 	c, _ := gin.CreateTestContext(w)
 	c.Request = req
 
-	mw := middlewarePkg.RateLimit()
+	mw := middlewarePkg.RateLimit(10)
 	mw(c)
 
 	if w.Code != http.StatusOK {
@@ -76,8 +76,8 @@ func TestRateLimit(t *testing.T) {
 
 func TestJanitor(t *testing.T) {
 	// Add some test middleware.Clients
-	middlewarePkg.GetLimiter("127.0.0.1")
-	middlewarePkg.GetLimiter("127.0.0.2")
+	middlewarePkg.GetLimiter("127.0.0.1", 100)
+	middlewarePkg.GetLimiter("127.0.0.2", 100)
 
 	// Set one client to be old
 	middlewarePkg.ClientsMu.Lock()
