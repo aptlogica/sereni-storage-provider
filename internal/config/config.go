@@ -24,6 +24,8 @@ type ServerConfig struct {
 	MaxUploadSizeBytes int64
 	// AllowedOrigins for CORS
 	AllowedOrigins []string
+	// RateLimit for the API, -1 means no limit
+	RateLimit int
 }
 
 type StorageConfig struct {
@@ -78,12 +80,14 @@ func LoadConfig() (Config, error) {
 	viper.SetDefault("SERVER_SCHEME", "http")
 	viper.SetDefault("MAX_UPLOAD_SIZE_BYTES", 10<<20) // 10 MiB
 	viper.SetDefault("ALLOWED_ORIGINS", "*")
+	viper.SetDefault("RATE_LIMIT", -1)
 
 	cfg.Server.Port = viper.GetString("SERVER_PORT")
 	cfg.Server.Host = viper.GetString("SERVER_HOST")
 	cfg.Server.IP = viper.GetString("SERVER_IP")
 	cfg.Server.Scheme = viper.GetString("SERVER_SCHEME")
 	cfg.Server.MaxUploadSizeBytes = viper.GetInt64("MAX_UPLOAD_SIZE_BYTES")
+	cfg.Server.RateLimit = viper.GetInt("RATE_LIMIT")
 	// Parse allowed origins (comma-separated)
 	origins := viper.GetString("ALLOWED_ORIGINS")
 	if origins == "*" || origins == "" {

@@ -65,28 +65,32 @@ func JanitorWithInterval(ctx context.Context, interval time.Duration) {
 	}
 }
 
-func GetLimiter(ip string) *limiter {
+func GetLimiter(ip string, limit int) *limiter {
 	ClientsMu.Lock()
 	defer ClientsMu.Unlock()
 	l, ok := Clients[ip]
 	if !ok {
-		l = &limiter{tokens: 10, Last: time.Now()}
+		l = &limiter{tokens: float64(limit), Last: time.Now()}
 		Clients[ip] = l
 	}
 	return l
 }
 
-// RateLimit middleware with simple refill semantics: 10 tokens burst, refill 1 token/sec
-func RateLimit() gin.HandlerFunc {
+// RateLimit middleware with simple refill semantics. If limit is -1, it bypasses rate limiting.
+func RateLimit(limit int) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		if limit == -1 {
+			c.Next()
+			return
+		}
 		ip := c.ClientIP()
-		l := GetLimiter(ip)
+		l := GetLimiter(ip, limit)
 		l.mu.Lock()
 		now := time.Now()
 		elapsed := now.Sub(l.Last).Seconds()
 		l.tokens += elapsed
-		if l.tokens > 10 {
-			l.tokens = 10
+		if l.tokens > float64(limit) {
+			l.tokens = float64(limit)
 		}
 		l.Last = now
 		if l.tokens < 1 {
