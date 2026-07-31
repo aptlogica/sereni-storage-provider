@@ -14,6 +14,7 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/aptlogica/sereni-storage-provider/internal/api/handlers"
 	"github.com/aptlogica/sereni-storage-provider/internal/api/routes"
@@ -26,6 +27,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
 )
 
 // @title Sereni Storage Provider API
@@ -92,11 +95,18 @@ func main() {
 
 	routes.SetupRoutes(router, storageHandler, healthHandler, cfg.Storage.Dev.Path)
 
-	// 6. Start Server
+	// 6. Start Server with HTTP/2 (h2c) support
 	serverAddr := fmt.Sprintf("%s:%s", cfg.Server.Host, cfg.Server.Port)
-	log.Info().Str("addr", serverAddr).Msg("Starting server")
+	log.Info().Str("addr", serverAddr).Msg("Starting server with HTTP/2 (h2c) support")
 
-	if err := router.Run(serverAddr); err != nil {
+	h2Server := &http2.Server{}
+	h2cHandler := h2c.NewHandler(router, h2Server)
+	server := &http.Server{
+		Addr:    serverAddr,
+		Handler: h2cHandler,
+	}
+
+	if err := server.ListenAndServe(); err != nil {
 		log.Fatal().Err(err).Msg("Failed to start server")
 	}
 }
