@@ -17,10 +17,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 #v4.0.0
 
       - name: Run Trivy Scan
-        uses: aquasecurity/trivy-action@v0.35.0
+        uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8 # v0.36.0
         with:
           scan-type: fs
           format: sarif
@@ -28,6 +28,6 @@ jobs:
           severity: CRITICAL,HIGH
 
       - name: Upload results to GitHub Security
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@f205ea11db2e05a39cb2a3512a201b1e6e0d9b43 # v4.37.4
         with:
           sarif_file: trivy-results.sarif
