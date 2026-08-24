@@ -26,6 +26,23 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+
+	// GOMAXPROCS from the container's CPU limit, not the host's core count.
+	//
+	// Without this the Go runtime sizes itself from the NODE: m6a.xlarge
+	// reports 4 vCPU, so the scheduler starts 4 Ps and the GC paces itself
+	// for 4 cores, while the cgroup quota is 2 cores (1 for some pods).
+	// The runtime then burns its whole 100ms CFS quota in ~50ms of wall
+	// clock and sits throttled for the rest of every period. Measured
+	// 2026-08-23: 23% throttling on postgres-writer at 5,000 statements/sec
+	// and 38-64% on Loki, in both cases while the pod looked to be under
+	// its limit on average.
+	//
+	// Blank import, so this runs at init before main and needs no call
+	// site. k8s/*.yaml also sets GOMAXPROCS from the downward API, which
+	// covers third-party images that cannot import this; the two agree and
+	// the explicit env var wins when both are present.
+	_ "go.uber.org/automaxprocs"
 )
 
 // @title Sereni Storage Provider API

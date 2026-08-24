@@ -42,9 +42,23 @@ func NewS3StorageProvider(cfg *app_config.StorageAWSConfig) (interfaces.StorageP
 
 	opts := []func(*aws_config.LoadOptions) error{
 		aws_config.WithRegion(cfg.Region),
-		aws_config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(cfg.AccessKey, cfg.SecretKey, "")),
 	}
 
+	// Static credentials only when both are actually supplied. Previously this
+	// always installed a StaticCredentialsProvider, which meant that with no
+	// keys configured the SDK was handed a provider returning empty strings
+	// rather than falling through to the default credential chain - so IRSA,
+	// EC2 instance roles and ECS task roles could never work with this driver
+	// and every deployment needed long-lived IAM user keys in a secret.
+	//
+	// Leaving both blank now lets LoadDefaultConfig use its normal chain, which
+	// on EKS picks up the projected web-identity token from the pod's
+	// ServiceAccount. Supplying keys still overrides it, so S3-compatible
+	// endpoints (MinIO, RustFS) keep working exactly as before.
+	if cfg.AccessKey != "" && cfg.SecretKey != "" {
+		opts = append(opts, aws_config.WithCredentialsProvider(
+			credentials.NewStaticCredentialsProvider(cfg.AccessKey, cfg.SecretKey, "")))
+	}
 	awsCfg, err := aws_config.LoadDefaultConfig(ctx, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load aws config: %w", err)
