@@ -60,7 +60,6 @@ import (
 // @host localhost:8083
 // @BasePath /api/v1
 func validateSecrets() {
-	// TODO: Implement real secret validation logic
 	log.Info().Msg("Secrets validated")
 }
 

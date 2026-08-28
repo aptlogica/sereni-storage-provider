@@ -11,6 +11,7 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
+	// Blank import for its init() side effect: registers the generated Swagger spec used by ginSwagger above.
 	_ "github.com/aptlogica/sereni-storage-provider/docs"
 )
 
