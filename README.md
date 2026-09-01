@@ -4,7 +4,7 @@
 
 <p align="center">
 <a href="LICENSE"><img src="https://img.shields.io/badge/Version-1.0.0-blue?style=for-the-badge" alt="Version"></a>
-<a href="https://golang.org"><img src="https://img.shields.io/badge/Go-1.26.2-00ADD8?style=for-the-badge&logo=go&logoColor=white" alt="Go Version"></a>
+<a href="https://golang.org"><img src="https://img.shields.io/badge/Go-1.26.5-00ADD8?style=for-the-badge&logo=go&logoColor=white" alt="Go Version"></a>
 <a href="https://aws.amazon.com/s3/"><img src="https://img.shields.io/badge/AWS_S3-Compatible-FF9900?style=for-the-badge&logo=amazons3&logoColor=white" alt="AWS S3"></a>
 <a href="https://rustfs.com/"><img src="https://img.shields.io/badge/RustFS-Supported-000000?style=for-the-badge" alt="RustFS"></a>
 <a href="https://gin-gonic.com/"><img src="https://img.shields.io/badge/Gin-Framework-008ECF?style=for-the-badge&logo=gin&logoColor=white" alt="Gin"></a>
@@ -73,7 +73,7 @@ We welcome contributions! Please:
 When used with [sereni-antivirus-clamav](https://github.com/aptlogica/sereni-antivirus-clamav), all file uploads are scanned for malware before being committed to storage. The scanning step is handled by the sereni-base orchestration layer — neither service calls the other directly. Configure `ANTIVIRUS_SERVICE_URL` in sereni-base to enable this behaviour.
 
 ## Architecture
-- Go 1.26.2+, idiomatic design
+- Go 1.26.5+, idiomatic design
 - Modular, testable codebase
 
 ## Installation
