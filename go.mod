@@ -1,6 +1,6 @@
 module github.com/aptlogica/sereni-storage-provider
 
-go 1.26.2
+go 1.26.5
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.43.4
