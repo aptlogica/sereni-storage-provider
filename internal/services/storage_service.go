@@ -69,7 +69,7 @@ func (s *StorageService) UploadFile(ctx context.Context, file *multipart.FileHea
 	contentType := file.Header.Get("Content-Type")
 	// If the client didn't provide a content-type or provided a generic one,
 	// try to infer a better value from the file extension. This prevents
-	// MinIO/S3 from storing SVGs with `application/octet-stream` which
+	// the storage backend from storing SVGs with `application/octet-stream` which
 	// browsers won't render.
 	if contentType == "" || contentType == "application/octet-stream" {
 		ext := strings.ToLower(filepath.Ext(file.Filename))

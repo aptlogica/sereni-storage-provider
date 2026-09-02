@@ -54,7 +54,7 @@ func NewS3StorageProvider(cfg *app_config.StorageAWSConfig) (interfaces.StorageP
 	// Leaving both blank now lets LoadDefaultConfig use its normal chain, which
 	// on EKS picks up the projected web-identity token from the pod's
 	// ServiceAccount. Supplying keys still overrides it, so S3-compatible
-	// endpoints (MinIO, RustFS) keep working exactly as before.
+	// endpoints (e.g. RustFS) keep working exactly as before.
 	if cfg.AccessKey != "" && cfg.SecretKey != "" {
 		opts = append(opts, aws_config.WithCredentialsProvider(
 			credentials.NewStaticCredentialsProvider(cfg.AccessKey, cfg.SecretKey, "")))
